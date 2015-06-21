@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 import urllib2
 import os
-import config_pcache
+import config_cdash
 import errno
 import urlparse
 
 DOWNLOAD_CHUNK = 1024
-
 
 def make_sure_path_exists(path):
     """ Module to make sure the path exists if not create it

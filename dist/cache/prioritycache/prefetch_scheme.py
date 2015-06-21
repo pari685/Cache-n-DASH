@@ -7,7 +7,7 @@ import os
 SEGMENT_TEMPLATE = {'TheSwissAccount': 'TheSwissAccount_4s',
                     'BigBuckBunny' : 'BigBuckBunny_4s'}
 
-def get_next_bitrate(request_path):
+def get_next_simple(request_path):
     """
      sample_request = /media/TheSwissAccount/4sec/swiss_88745bps/TheSwissAccount_4s1.m4s
     :param file_path: File request path

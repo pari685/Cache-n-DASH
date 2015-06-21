@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """"
-Cache-n-DASH: A Caching Framework for DASH video streaming. 
+Cache-n-DASH: A Caching Framework for DASH video streaming.
 
 Authors: Parikshit Juluri, Sheyda Kiyani Meher, Rohit Abhishek
 Institution: University of Missouri-Kansas City
 Contact Email: pjuluri@umkc.edu
-    
+
     Copyright (C) 2015, Parikshit Juluri
 
     This program is free software; you can redistribute it and/or modify
@@ -25,16 +25,33 @@ Contact Email: pjuluri@umkc.edu
 
 import os
 from time import strftime
-LOG_NAME = 'PCache_LOG'
+
+
+
+#####  Parameters for the priority cache
+FETCH_CODE = 'FETCH'
+PREFETCH_CODE = 'PRE-FETCH'
+CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014'
+LOCAL_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\Videos\\'
+CACHE_LIMIT = 100
+PREFETCH_LIMIT = 100
+CACHE_DATABASE = 'C:\\Users\\pjuluri\\Desktop\\Cache_db.db'
+
+TABLE_LIST = ["CREATE TABLE Prefetch(Segment Text, Weightage INT)",
+              "CREATE TABLE Current(Segment Text)"]
+
+
+# Cache Logging
+LOG_NAME = 'cache_LOG'
 # LOG level to be setby the configure_log file
 LOG_LEVEL = None
 
 # Initialize the Log Folders
-LOG_FOLDER = "CND_PCache_LOGS/"
+LOG_FOLDER = "Cache_LOGS/"
 if not os.path.exists(LOG_FOLDER):
         os.makedirs(LOG_FOLDER)
-LOG_FILENAME = os.path.join(LOG_FOLDER, 
-        strftime('PCache_Runtime_LOG_%Y-%m-%d.%H_%M_%S.log'))
+LOG_FILENAME = os.path.join(LOG_FOLDER,
+        strftime('cache_Runtime_LOG_%Y-%m-%d.%H_%M_%S.log'))
 LOG_FILE_HANDLE = None
 # To be set by configure_log_file.py
 LOG = None
