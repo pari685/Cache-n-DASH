@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import urllib2
 import os
-import config_cnd
+import config_pcache
 import errno
 import urlparse
 
@@ -21,8 +21,8 @@ def download_file(segment_url, dash_folder):
     """ Module to download the segment """
     try:
         connection = urllib2.urlopen(segment_url)
-    except urllib2.HTTPError, error:
-        config_cnd.LOG.error("Unable to download DASH Segment {} HTTP Error:{} ".format(segment_url, str(error.code)))
+    except urllib2.HTTPError:
+        print "Unable to download DASH Segment {}".format(segment_url)
         return None
     parsed_uri = urlparse.urlparse(segment_url)
     segment_path = '{uri.path}'.format(uri=parsed_uri)
