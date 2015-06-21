@@ -35,7 +35,11 @@ CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014'
 LOCAL_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\Videos\\'
 CACHE_LIMIT = 100
 PREFETCH_LIMIT = 100
+CURRENT_THREAD = True
+PREFETCH_THREAD = True
+
 CACHE_DATABASE = 'C:\\Users\\pjuluri\\Desktop\\Cache_db.db'
+TABLE_RETRY_TIME = 5
 
 TABLE_LIST = ["CREATE TABLE Prefetch(Segment Text, Weightage INT)",
               "CREATE TABLE Current(Segment Text)"]
@@ -47,11 +51,12 @@ LOG_NAME = 'cache_LOG'
 LOG_LEVEL = None
 
 # Initialize the Log Folders
-LOG_FOLDER = "Cache_LOGS/"
+LOG_FOLDER = "C:\\Users\\pjuluri\\Desktop\\Cache_LOGS\\"
 if not os.path.exists(LOG_FOLDER):
         os.makedirs(LOG_FOLDER)
 LOG_FILENAME = os.path.join(LOG_FOLDER,
         strftime('cache_Runtime_LOG_%Y-%m-%d.%H_%M_%S.log'))
+
 LOG_FILE_HANDLE = None
 # To be set by configure_log_file.py
 LOG = None
