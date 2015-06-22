@@ -33,7 +33,7 @@ MPD_SOURCE_LIST = ['BigBuckBunny/4sec/BigBuckBunny_4s_simple_2014_05_09.mpd',
                    'ElephantsDream/4sec/ElephantsDream_4s_simple_2014_05_09.mpd'
                    ]
 MPD_DICT_JSON_FILE = 'C:\\Users\\pjuluri\\Desktop\\Videos\\MPD_DICT.json'
-MPD_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\MPD\\'
+MPD_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\MPD_FILES\\'
 #####  Parameters for the priority cache
 FETCH_CODE = 'FETCH'
 PREFETCH_CODE = 'PRE-FETCH'

@@ -14,7 +14,7 @@ def get_next_simple(request_path):
     :return: return the request for the next bitrate
     """
     request = request_path.split('/')
-    video_id, bitrate, segment = request[1], request[-2], request[-1]
+    video_id, bitrate, segment = request[0], request[-2], request[-1]
     next_segment = None
     if 'init' in segment:
         next_segment = '1'
@@ -26,7 +26,6 @@ def get_next_simple(request_path):
         next_segment = str(segment_number + 1)
     next_segment_name = ''.join((SEGMENT_TEMPLATE[video_id], next_segment, '.m4s'))
     next_file_path = '/'.join((os.path.dirname(request_path), next_segment_name))
-    print 'NEXT is', next_file_path
     return next_file_path
 
 

@@ -43,31 +43,38 @@ class PriorityCache():
         self.initialize_cache()
 
     def initialize_cache(self, local_folder=config_cdash.LOCAL_FOLDER):
-        current_files = glob.glob(local_folder + '*')
+        current_files = glob.glob(local_folder + '*.m4s')
         for current_file in current_files:
-            self.cache[os.path.basename(current_file)] = current_file
-        print 'Initializing Cache to', self.cache
+            try:
+                os.remove(current_file)
+            except IOError:
+                config_cdash.LOG.error('Unable to delete the cache file {}. Skipping'.format(current_file))
+                continue
 
     def get_file(self, key, code=config_cdash.FETCH_CODE):
         """ Get the file from the cache.
-        If not get it from the content server """
+        If not get it from the content server
+        """
         try:
-            local_filepath = self.cache[key]
+            local_filepath, http_headers = self.cache[key]
             if code == config_cdash.FETCH_CODE:
                 self.fetch_hits += 1
+                config_cdash.LOG.info('Fetch hit count = {} Fetch hit: {}'.format(self.fetch_hits, key))
             elif code == config_cdash.PREFETCH_CODE:
                 self.prefetch_hits += 1
+                config_cdash.LOG.info('Prefetch hit count = {}. Prefetch hit: {}'.format(self.prefetch_hits, key))
         except KeyError:
             # The file is not in the cache.
             # Need to fetch from content server
             # TODO: Check if the request is valid (Use Rohit's code)
-            local_filepath = download_segment(key)
-            self.cache[key] = local_filepath
+            local_filepath, http_headers = download_segment(key)
+            self.cache[key] = (local_filepath, http_headers)
             if len(self.cache) > self.maxsize:
                 self.pop_cache()
             self.misses += 1
-        print self.cache
-        return local_filepath
+            config_cdash.LOG.info('Cache miss: count = {},{}'.format(self.misses, key))
+        config_cdash.LOG.info('Current cache: {}'.format(self.cache))
+        return local_filepath, http_headers
 
     def pop_cache(self):
         """ Module to pop an item from the cache.

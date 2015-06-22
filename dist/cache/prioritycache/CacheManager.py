@@ -54,11 +54,15 @@ def create_db(database_name):
 class CacheManager():
     def __init__(self, cache_size=config_cdash.CACHE_LIMIT):
         """ Initialize the Cache manager. 
-            Start the Priority Cache with max_size = cache_size """
+            Start the Priority Cache with max_size = cache_size
+        """
+        self.fetch_requests = 0
+        self.prefetch_requests = 0
         config_cdash.LOG.info('Initializing the Cache Manager')
         self.cache = PriorityCache(cache_size)
         self.conn = create_db(config_cdash.CACHE_DATABASE)
         self.cur = self.conn.cursor()
+        self.stop = threading.Event()
         self.current_thread = threading.Thread(target=self.current_function, args=())
         self.current_thread.daemon = True
         self.current_thread.start()
@@ -66,10 +70,7 @@ class CacheManager():
         self.prefetch_thread = threading.Thread(target=self.prefetch_function, args=())
         self.prefetch_thread.daemon = True
         self.prefetch_thread.start()
-        self.stop = threading.Event()
         config_cdash.LOG.info('Started the Preftech thread')
-        self.fetch_requests = 0
-        self.prefetch_requests = 0
 
     def terminate(self):
         self.stop.set()
@@ -85,10 +86,10 @@ class CacheManager():
         self.cur.execute("INSERT INTO Current(Segment) VALUES('{}');".format(file_path))
         # Return the file path
         self.conn.commit()
-        local_filepath = self.cache.get_file(file_path, config_cdash.FETCH_CODE)
+        local_filepath, http_headers = self.cache.get_file(file_path, config_cdash.FETCH_CODE)
         self.fetch_requests += 1
         config_cdash.LOG.info('Total fetch Requests = {}'.format(self.fetch_requests))
-        return local_filepath
+        return local_filepath, http_headers
 
     def current_function(self):
         """
@@ -96,7 +97,6 @@ class CacheManager():
         """
         thread_conn = create_db(config_cdash.CACHE_DATABASE)
         thread_cur = thread_conn.cursor()
-
         while not self.stop.is_set():
             try:
                 thread_cur.execute('Select * from Current')
@@ -125,10 +125,8 @@ class CacheManager():
             config_cdash.LOG.warning('Current thread terminated')
 
     def prefetch_function(self):
-        """
-        Function that reads the contents of the prefetch table in the database and
-        prefetches the file into the cache
-        :return:
+        """ Function that reads the contents of the prefetch table in the database and pre-fetches the file into
+            the cache
         """
         thread_conn = create_db(config_cdash.CACHE_DATABASE)
         thread_cur = thread_conn.cursor()

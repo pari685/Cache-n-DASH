@@ -37,6 +37,7 @@ def download_file(segment_url, dash_folder):
         raise
     # Retrieving the content length
     content_length = connection.headers['content-length']
+    http_headers = dict(connection.headers)
     parsed_uri = urlparse.urlparse(segment_url)
     segment_path = '{uri.path}'.format(uri=parsed_uri)
     while segment_path.startswith('/'):
@@ -61,7 +62,8 @@ def download_file(segment_url, dash_folder):
     connection.close()
     download_time = timeit.default_timer() - download_start_time
     segment_file_handle.close()
-    config_cdash.LOG.info('Retrieved the segment {} of size {} in time {} from the content server'.format(segment_url,
-                                                                                                          segment_size,
-                                                                                                          download_time))
-    return segment_filename
+    config_cdash.LOG.info('Retrieved the segment {} of size \  '
+                          '{} in time {} from the content server'.format(segment_url,
+                                                                         segment_size,
+                                                                         download_time))
+    return segment_filename, http_headers

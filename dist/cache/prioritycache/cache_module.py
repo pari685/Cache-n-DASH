@@ -41,8 +41,10 @@ VIDEO_CACHE_CONTENT = {
 def check_content_server(video_request):
     """ Module to check if the request is in the content server
     """
+    if not video_request.startswith('/'):
+        video_request = '/' + video_request
     video_request_array = video_request.split("/")
-    #checking if the requested video name is in the server i.e the key matches the request
+    # checking if the requested video name is in the server i.e the key matches the request
     bitrate_request = video_request_array[3].split("_")
     bitrate_array = re.split('(\d+)', bitrate_request[1])
     bitrate = int(bitrate_array[1])
