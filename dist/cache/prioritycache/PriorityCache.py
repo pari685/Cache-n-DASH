@@ -10,8 +10,7 @@ def download_segment(segment_path):
     """ Function to download the segment"""
     segment_url = config_cdash.CONTENT_SERVER + segment_path
     dir_name = os.path.dirname(segment_path)
-    destination_folder = os.path.join(config_cdash.LOCAL_FOLDER)
-    return download_file(segment_url, destination_folder)
+    return download_file(segment_url, config_cdash.VIDEO_FOLDER)
 
 class Counter(dict):
     """Dictionary where the default value is 0"""
@@ -42,7 +41,7 @@ class PriorityCache():
         self.prefetch_hits = 0
         self.initialize_cache()
 
-    def initialize_cache(self, local_folder=config_cdash.LOCAL_FOLDER):
+    def initialize_cache(self, local_folder=config_cdash.VIDEO_FOLDER):
         current_files = glob.glob(local_folder + '*.m4s')
         for current_file in current_files:
             try:

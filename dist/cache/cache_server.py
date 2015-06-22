@@ -81,21 +81,16 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 config_cdash.LOG.error('Unable to fetch MPD file from the content server url {}. HTTPError: {}'.format(
                     mpd_url, http_error.code))
             # make directory in cache for request
-            make_path = os.path.dirname(request)
             try:
                 make_sure_path_exists(os.path.dirname(request))
             except IOError:
                 config_cdash.LOG.error('Unable to create the directory: {}'.format(request))
-            mpd_name = os.path.basename(request)
-            # Assumes the default UTF-8
-            # mpd_hash = hash_code(mpd_name)
             request_path = request.replace('/', os.path.sep)
             local_mpd_path = os.path.join(config_cdash.MPD_FOLDER, request_path)
             make_sure_path_exists(os.path.dirname(local_mpd_path))
             with open(local_mpd_path, 'wb') as local_mpd_file:
                 shutil.copyfileobj(content_server_response, local_mpd_file)
             config_cdash.LOG.info('Downloaded the MPD: {} to {}'.format(content_server_response, local_mpd_path))
-
             self.send_response(HTTP_OK)
             for header, header_value in mpd_headers.items():
                 self.send_header(header, header_value)
@@ -112,8 +107,7 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             config_cdash.LOG.info('Request for m4s {}'.format(request))
             if check_content_server(request):
                 local_file_path, http_headers = cache_manager.fetch_file(request)
-                config_cdash.LOG.debug('M4s request: local {}, http_headers: {}'.format(local_file_path, http_headers))
-
+                config_cdash.LOG.debug('M4S request: local {}, http_headers: {}'.format(local_file_path, http_headers))
                 self.send_response(HTTP_OK)
                 for header, header_value in http_headers.items():
                     self.send_header(header, header_value)
