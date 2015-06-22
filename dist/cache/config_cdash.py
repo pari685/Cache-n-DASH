@@ -37,7 +37,7 @@ MPD_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\MPD_FILES\\'
 #####  Parameters for the priority cache
 FETCH_CODE = 'FETCH'
 PREFETCH_CODE = 'PRE-FETCH'
-CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/'
+CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/BigBuckBunny/4sec/'
 VIDEO_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\Videos\\'
 CACHE_LIMIT = 100
 PREFETCH_LIMIT = 100

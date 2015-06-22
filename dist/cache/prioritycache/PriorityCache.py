@@ -9,8 +9,9 @@ import config_cdash
 def download_segment(segment_path):
     """ Function to download the segment"""
     segment_url = config_cdash.CONTENT_SERVER + segment_path
-    dir_name = os.path.dirname(segment_path)
-    return download_file(segment_url, config_cdash.VIDEO_FOLDER)
+    segment_filename = segment_path.replace('/', '_')
+    local_filepath = os.path.join(config_cdash.VIDEO_FOLDER, segment_filename)
+    return download_file(segment_url, local_filepath)
 
 class Counter(dict):
     """Dictionary where the default value is 0"""

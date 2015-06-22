@@ -46,3 +46,6 @@ Temporary Items
 .idea
 .pyc
 .log
+*.json
+*.csv
+*.mpd

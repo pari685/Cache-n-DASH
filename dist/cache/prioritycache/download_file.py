@@ -27,13 +27,13 @@ def make_sure_path_exists(folder_path):
             config_cdash.LOG.error('Unable to create the cache folder {}'.format(folder_path))
             raise
 
-def download_file(segment_url, dash_folder):
+def download_file(segment_url, segment_filepath):
     """ Module to download the segment """
     # Connecting to the content server
     try:
         connection = urllib2.urlopen(segment_url)
     except urllib2.HTTPError:
-        config_cdash.LOG.error("Unable to connect to the content server.".format(segment_url))
+        config_cdash.LOG.error("Unable to connect to the content server. {}".format(segment_url))
         raise
     # Retrieving the content length
     content_length = connection.headers['content-length']
@@ -41,13 +41,12 @@ def download_file(segment_url, dash_folder):
     parsed_uri = urlparse.urlparse(segment_url)
     segment_path = '{uri.path}'.format(uri=parsed_uri)
     while segment_path.startswith('/'):
-        segment_path = segment_path[1:]        
-    segment_filename = os.path.join(dash_folder, os.path.basename(segment_path))
-    make_sure_path_exists(os.path.dirname(segment_filename))
+        segment_path = segment_path[1:]
+    make_sure_path_exists(os.path.dirname(segment_filepath))
     try:
-        segment_file_handle = open(segment_filename, 'wb')
+        segment_file_handle = open(segment_filepath, 'wb')
     except IOError:
-        config_cdash.LOG.error('Unable to open local file for writing: {}'.format(segment_filename))
+        config_cdash.LOG.error('Unable to open local file for writing: {}'.format(segment_filepath))
         return None
     segment_size = 0
     # Start the timer for download
@@ -63,7 +62,5 @@ def download_file(segment_url, dash_folder):
     download_time = timeit.default_timer() - download_start_time
     segment_file_handle.close()
     config_cdash.LOG.info('Retrieved the segment {} of size \  '
-                          '{} in time {} from the content server'.format(segment_url,
-                                                                         segment_size,
-                                                                         download_time))
-    return segment_filename, http_headers
+                          '{} in time {} from the content server'.format(segment_url, segment_size, download_time))
+    return segment_filepath, http_headers

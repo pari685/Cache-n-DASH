@@ -80,11 +80,6 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             except urllib2.HTTPError as http_error:
                 config_cdash.LOG.error('Unable to fetch MPD file from the content server url {}. HTTPError: {}'.format(
                     mpd_url, http_error.code))
-            # make directory in cache for request
-            try:
-                make_sure_path_exists(os.path.dirname(request))
-            except IOError:
-                config_cdash.LOG.error('Unable to create the directory: {}'.format(request))
             request_path = request.replace('/', os.path.sep)
             local_mpd_path = os.path.join(config_cdash.MPD_FOLDER, request_path)
             make_sure_path_exists(os.path.dirname(local_mpd_path))
