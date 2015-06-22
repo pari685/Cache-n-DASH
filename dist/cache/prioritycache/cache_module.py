@@ -1,9 +1,17 @@
 import sys
 import re
+import os
 import config_cdash
 
 
-
+def segment_exists(video_segment):
+    """ Module to check if a given segment exisst in the cache """
+    video_segment_name = video_segment.replace('/', '-')
+    video_path = os.path.join(config_cdash.VIDEO_FOLDER, video_segment_name)
+    if os.path.exists(video_path):
+        config_cdash.LOG.info('Segment already in cache {}'.format(video_path))
+        return True
+    return False
 
 def check_content_server(video_request):
     """ Module to check if the request is in the content server

@@ -26,6 +26,7 @@ import threading
 import sqlite3
 import time
 from prioritycache.cache_module import check_content_server
+from prioritycache.cache_module import segment_exists
 from prioritycache.prefetch_scheme import get_next_simple
 from PriorityCache import PriorityCache
 import config_cdash
@@ -115,11 +116,12 @@ class CacheManager():
                     except sqlite3.OperationalError:
                         continue
                 next_request = get_next_simple(current_request)
-                if check_content_server(next_request):
-                    config_cdash.LOG.info('CTHREAD: Current segment: {}, Next segment: {}'.format(current_request, next_request))
-                    thread_cur.execute("INSERT INTO Prefetch(Segment) VALUES('{}');".format(next_request))
-                else:
-                    config_cdash.LOG.info('CTHREAD: Invalid Next segment: {}'.format(current_request, next_request))
+                if not segment_exists(next_request):
+                    if check_content_server(next_request):
+                        config_cdash.LOG.info('CTHREAD: Current segment: {}, Next segment: {}'.format(current_request, next_request))
+                        thread_cur.execute("INSERT INTO Prefetch(Segment) VALUES('{}');".format(next_request))
+                    else:
+                        config_cdash.LOG.info('CTHREAD: Invalid Next segment: {}'.format(current_request, next_request))
                 thread_conn.commit()
         else:
             config_cdash.LOG.warning('Current thread terminated')

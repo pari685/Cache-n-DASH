@@ -9,7 +9,7 @@ import config_cdash
 def download_segment(segment_path):
     """ Function to download the segment"""
     segment_url = config_cdash.CONTENT_SERVER + segment_path
-    segment_filename = segment_path.replace('/', '_')
+    segment_filename = segment_path.replace('/', '-')
     local_filepath = os.path.join(config_cdash.VIDEO_FOLDER, segment_filename)
     return download_file(segment_url, local_filepath)
 
