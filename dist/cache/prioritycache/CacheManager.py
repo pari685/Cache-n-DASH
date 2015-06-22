@@ -25,6 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 import threading
 import sqlite3
 import time
+from prioritycache.cache_module import check_content_server
 from prioritycache.prefetch_scheme import get_next_simple
 from PriorityCache import PriorityCache
 import config_cdash
@@ -107,11 +108,18 @@ class CacheManager():
             # Determining the next bitrates and adding to the prefetch list
             for row in rows:
                 current_request = row[0]
-                thread_cur.execute("DELETE FROM Current WHERE Segment='{}';".format(current_request))
+                while True:
+                    try:
+                        thread_cur.execute("DELETE FROM Current WHERE Segment='{}';".format(current_request))
+                        break
+                    except sqlite3.OperationalError:
+                        continue
                 next_request = get_next_simple(current_request)
-                config_cdash.LOG.info('CTHREAD: Current segment: {}, Next segment: {}'.format(current_request, next_request))
-                # TODO: Check if file exists in cache before pre-fetching
-                thread_cur.execute("INSERT INTO Prefetch(Segment) VALUES('{}');".format(next_request))
+                if check_content_server(next_request):
+                    config_cdash.LOG.info('CTHREAD: Current segment: {}, Next segment: {}'.format(current_request, next_request))
+                    thread_cur.execute("INSERT INTO Prefetch(Segment) VALUES('{}');".format(next_request))
+                else:
+                    config_cdash.LOG.info('CTHREAD: Invalid Next segment: {}'.format(current_request, next_request))
                 thread_conn.commit()
         else:
             config_cdash.LOG.warning('Current thread terminated')
@@ -126,7 +134,8 @@ class CacheManager():
         thread_cur = thread_conn.cursor()
         while not self.stop.is_set():
             try:
-                # Pre-fetching the files TODO: Extend the weightage parameter
+                # Pre-fetching the files
+                # TODO: Extend the weightage parameter
                 thread_cur.execute('SELECT * from Prefetch;')
             except sqlite3.OperationalError:
                 config_cdash.LOG.error('Could not read from the Prefetch table')
@@ -135,12 +144,17 @@ class CacheManager():
             rows = thread_cur.fetchall()
             for row in rows:
                 prefetch_request = row[0]
-                thread_cur.execute("DELETE FROM Prefetch WHERE Segment='{}';".format(prefetch_request))
+                while True:
+                    # Try to write to database.
+                    try:
+                        thread_cur.execute("DELETE FROM Prefetch WHERE Segment='{}';".format(prefetch_request))
+                        break
+                    except sqlite3.OperationalError:
+                        continue
                 thread_conn.commit()
-                config_cdash.LOG.info('Prefetching the segment: {}'.format(prefetch_request))
+                config_cdash.LOG.info('Pre-fetching the segment: {}'.format(prefetch_request))
                 self.cache.get_file(prefetch_request, config_cdash.PREFETCH_CODE)
                 self.prefetch_requests += 1
                 config_cdash.LOG.info('Total prefetch Requests = {}'.format(self.prefetch_requests))
         else:
             config_cdash.LOG.warning('Prefetch thread terminated')
-
