@@ -55,15 +55,17 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         request = self.path.strip("/").split('?')[0]
         # check if mpd file requested is in Cache Server (dictionary)
         if request in MPD_DICT:
+            config_cdash.LOG.info('Found MPD in MPD_DICT')
             request_path = request.replace('/', os.path.sep)
             make_sure_path_exists(config_cdash.MPD_FOLDER)
             local_mpd_path = os.path.join(config_cdash.MPD_FOLDER, request_path)
+
+            self.send_response(HTTP_OK)
+            for header, header_value in MPD_DICT[request]['http_headers'].items():
+                self.send_header(header, header_value)
+            self.end_headers()
             with open(local_mpd_path, 'rb') as request_file:
                 self.wfile.write(request_file.read())
-                self.send_response(HTTP_OK)
-                for header, header_value in MPD_DICT[request]['http_headers'].items():
-                    self.send_header(header, header_value)
-                self.end_headers()
                 config_cdash.LOG.info('Served the MPD file from the cache server')
 
         elif request in config_cdash.MPD_SOURCE_LIST:
@@ -93,12 +95,13 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             with open(local_mpd_path, 'wb') as local_mpd_file:
                 shutil.copyfileobj(content_server_response, local_mpd_file)
             config_cdash.LOG.info('Downloaded the MPD: {} to {}'.format(content_server_response, local_mpd_path))
+
+            self.send_response(HTTP_OK)
+            for header, header_value in mpd_headers.items():
+                self.send_header(header, header_value)
+            self.end_headers()
             with open(local_mpd_path, 'rb') as request_file:
                     self.wfile.write(request_file.read())
-                    self.send_response(HTTP_OK)
-                    for header, header_value in mpd_headers.items():
-                        self.send_header(header, header_value)
-                    self.end_headers()
             config_cdash.LOG.info('Served MPD file:{}'.format(local_mpd_path))
             client_ip, client_port = self.client_address
             mpd_headers_dict = dict(mpd_headers)
@@ -110,12 +113,13 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if check_content_server(request):
                 local_file_path, http_headers = cache_manager.fetch_file(request)
                 config_cdash.LOG.debug('M4s request: local {}, http_headers: {}'.format(local_file_path, http_headers))
+
+                self.send_response(HTTP_OK)
+                for header, header_value in http_headers.items():
+                    self.send_header(header, header_value)
+                self.end_headers()
                 with open(local_file_path, 'rb') as request_file:
                     self.wfile.write(request_file.read())
-                    self.send_response(HTTP_OK)
-                    for header, header_value in http_headers.items():
-                        self.send_header(header, header_value)
-                    self.end_headers()
             else:
                 config_cdash.LOG.warning('Invalid video file request: {}'.format(request))
         else:

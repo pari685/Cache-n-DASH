@@ -1,5 +1,6 @@
 import sys
 import re
+import config_cdash
 
 VIDEO_CACHE_CONTENT = {
     'BigBuckBunny': {'available-bitrate': [45226, 88783, 128503, 177437, 217761, 255865, 323047, 378355, 509091,
