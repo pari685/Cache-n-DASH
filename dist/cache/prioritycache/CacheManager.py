@@ -30,27 +30,9 @@ from prioritycache.cache_module import segment_exists
 from prioritycache.prefetch_scheme import get_next_simple
 from PriorityCache import PriorityCache
 import config_cdash
+from create_db import create_db
 
 
-def create_db(database_name):
-    """
-    :param database_name:
-    :return:
-    """
-    try:
-        conn = sqlite3.connect(database_name)
-        cur = conn.cursor()
-        config_cdash.LOG.info('Opened connection to the database file: {}'.format(database_name))
-    except sqlite3.OpertionalError:
-        config_cdash.LOG.error('Unable to open the database file: {}'.format(database_name))
-
-    for table in config_cdash.TABLE_LIST:
-        try:
-            cur.execute(table)
-            config_cdash.LOG.info('Creating Table:{} in {}'.format(table, database_name))
-        except sqlite3.OperationalError:
-            config_cdash.LOG.info('Table: {} already exists in {}. Skipping'.format(table, database_name))
-    return conn
 
 class CacheManager():
     def __init__(self, cache_size=config_cdash.CACHE_LIMIT):
@@ -61,7 +43,7 @@ class CacheManager():
         self.prefetch_requests = 0
         config_cdash.LOG.info('Initializing the Cache Manager')
         self.cache = PriorityCache(cache_size)
-        self.conn = create_db(config_cdash.CACHE_DATABASE)
+        self.conn = create_db(config_cdash.CACHE_DATABASE, config_cdash.TABLE_LIST)
         self.cur = self.conn.cursor()
         self.stop = threading.Event()
         self.current_thread = threading.Thread(target=self.current_function, args=())
@@ -96,7 +78,7 @@ class CacheManager():
         """
         Module that determines the next segment for all the current fetched bitrates
         """
-        thread_conn = create_db(config_cdash.CACHE_DATABASE)
+        thread_conn = create_db(config_cdash.CACHE_DATABASE, config_cdash.TABLE_LIST)
         thread_cur = thread_conn.cursor()
         while not self.stop.is_set():
             try:
@@ -130,7 +112,7 @@ class CacheManager():
         """ Function that reads the contents of the prefetch table in the database and pre-fetches the file into
             the cache
         """
-        thread_conn = create_db(config_cdash.CACHE_DATABASE)
+        thread_conn = create_db(config_cdash.CACHE_DATABASE, config_cdash.TABLE_LIST)
         thread_cur = thread_conn.cursor()
         while not self.stop.is_set():
             try:

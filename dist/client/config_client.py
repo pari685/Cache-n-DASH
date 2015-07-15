@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 #
 #   Cache n DASH
-#   Parikshit
-#	Sheyda
-#   Rohit
+#   Parikshit Juluri
+#	Sheyda Kiyani Meher
+#   Rohit Abhishek
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation; either version 2 of the License, or
@@ -21,11 +21,39 @@
 
 from time import strftime
 import os
+import random
+from string import digits, ascii_uppercase
+
+# Legal characters for the session ID
+LEGALS = digits + ascii_uppercase
+
+
+def generate_session_id(length, char_set=LEGALS):
+    """
+    Module to generate a random string for the video session
+    :param length: Length of the random string
+    :param char_set: Characters that could be used
+    :return: Random string
+    """
+    session_id = str()
+    for _ in range(length):
+        session_id += random.choice(char_set)
+    return session_id
+
+
+try:
+    import socket
+    USERNAME = socket.gethostname()
+except:
+    USERNAME = 'TESTING'
+
+COOKIE_FIELDS = {'Session-ID': generate_session_id(6),
+                 'Username': USERNAME}
+
 # The configuration file for the AStream module
 # create logger
 LOG_NAME = 'Cache-n-DASH_log'
 LOG_LEVEL = None
-
 # Set '-' to print to screen
 LOG_FOLDER = "LOGS/"
 if not os.path.exists(LOG_FOLDER):

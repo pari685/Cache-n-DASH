@@ -29,9 +29,7 @@ from time import strftime
 # CACHE Server Parameters
 HOSTNAME = 'localhost'
 PORT_NUMBER = 8001
-MPD_SOURCE_LIST = ['BigBuckBunny_4s_simple_2014_05_09.mpd',
-                   'ElephantsDream_4s_simple_2014_05_09.mpd'
-                   ]
+MPD_SOURCE_LIST = ['BigBuckBunny_4s_simple_2014_05_09.mpd']
 MPD_DICT_JSON_FILE = 'C:\\Users\\pjuluri\\Desktop\\Videos\\MPD_DICT.json'
 MPD_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\MPD_FILES\\'
 #####  Parameters for the priority cache

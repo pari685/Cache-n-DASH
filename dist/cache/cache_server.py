@@ -21,6 +21,7 @@ Contact Email: pjuluri@umkc.edu
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 """
 import BaseHTTPServer
 import sys
@@ -32,15 +33,33 @@ import errno
 import hashlib
 import json
 import config_cdash
+import time
+import timeit
+import datetime
+from os import stat
+import threading
+from create_db import create_db
 from prioritycache import CacheManager
 import configure_cdash_log
 from prioritycache.cache_module import check_content_server
 
 # Active state data structures
 MPD_DICT = {}
-USER_DICT = {}
-cache_manager = None
 
+USER_DICT_LOCK = threading.Lock()
+USER_DICT = {}
+THROUGHPUT_DATABASE = "C:\\Users\\pjuluri\\Desktop\\Throughput_db\\throughput_{}.db".format(time.strftime("%Y-%m-%d_%H_%M_%S"))
+THROUGHPUT_TABLES = ["CREATE TABLE THROUGHPUTDATA("
+                     "ENTRYID TIMESTAMP, "
+                     "USERNAME Text,"
+                     "SESSIONID Text,"
+                     "REQUESTID INTEGER PRIMARY KEY,"
+                     "REQUESTSIZE FLOAT,"
+                     "REQUESTTIME FLOAT,"
+                     "THROUGHPUT FLOAT);"]
+
+TH_CONN = None
+cache_manager = None
 # HTTP CODES
 HTTP_OK = 200
 HTTP_NOT_FOUND = 404
@@ -51,6 +70,15 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     # check if MPD_DICT file in cache exists
     def do_GET(self):
         """Function to handle the get message"""
+        entry_id = username = session_id = request_id = "NULL"
+        request_size = throughput = request_time = "NULL"
+        try:
+            username = self.headers['Username']
+            session_id = self.headers['Session-ID']
+        except KeyError:
+            config_cdash.LOG.warning('Could not find the username or session-ID for request from host:{}'.format(
+                self.client_address))
+
         global MPD_DICT
         request = self.path.strip("/").split('?')[0]
         # check if mpd file requested is in Cache Server (dictionary)
@@ -59,14 +87,19 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             request_path = request.replace('/', os.path.sep)
             make_sure_path_exists(config_cdash.MPD_FOLDER)
             local_mpd_path = os.path.join(config_cdash.MPD_FOLDER, request_path)
-
+            config_cdash.LOG.info(self.headers)
             self.send_response(HTTP_OK)
             for header, header_value in MPD_DICT[request]['http_headers'].items():
                 self.send_header(header, header_value)
             self.end_headers()
+
             with open(local_mpd_path, 'rb') as request_file:
+                start_time = timeit.default_timer()
                 self.wfile.write(request_file.read())
+                # Elapsed time in seconds
+                request_time = timeit.default_timer() - start_time
                 config_cdash.LOG.info('Served the MPD file from the cache server')
+            request_size = stat(local_mpd_path).st_size
 
         elif request in config_cdash.MPD_SOURCE_LIST:
             config_cdash.LOG.info("MPD: not in cache. Retrieving from Content server".format(request))
@@ -90,13 +123,19 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             for header, header_value in mpd_headers.items():
                 self.send_header(header, header_value)
             self.end_headers()
+
             with open(local_mpd_path, 'rb') as request_file:
-                    self.wfile.write(request_file.read())
+                start_time = timeit.default_timer()
+                self.wfile.write(request_file.read())
+                # Elapsed time in seconds
+                request_time = timeit.default_timer() - start_time
+            # file_size in bytes
+            request_size = stat(local_mpd_path).st_size
             config_cdash.LOG.info('Served MPD file:{}'.format(local_mpd_path))
-            client_ip, client_port = self.client_address
+            # client_ip, client_port = self.client_address
             mpd_headers_dict = dict(mpd_headers)
             config_cdash.LOG.info('Parsing MPD file')
-            parse_mpd(local_mpd_path, request, mpd_headers_dict, (client_ip, client_port))
+            parse_mpd(local_mpd_path, request, mpd_headers_dict, (username, session_id ))
         elif 'm4s' in request:
             # Check if it is a valid request
             config_cdash.LOG.info('Request for m4s {}'.format(request))
@@ -108,14 +147,31 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     self.send_header(header, header_value)
                 self.end_headers()
                 with open(local_file_path, 'rb') as request_file:
+                    start_time = timeit.default_timer()
                     self.wfile.write(request_file.read())
+                    request_time = timeit.default_timer() - start_time
+                request_size = stat(local_file_path).st_size
+
             else:
                 config_cdash.LOG.warning('Invalid video file request: {}'.format(request))
         else:
             self.send_response(HTTP_NOT_FOUND)
             config_cdash.LOG.warning('Could not find file {}'.format(request))
+            return
+        # If valid request sent
+        entry_id = datetime.datetime.now()
+        cursor = TH_CONN.cursor()
+        throughput = float(request_size)/request_time
+        config_cdash.LOG.info('Adding row to Throughput database : '
+                              'INSERT INTO THROUGHPUTDATA VALUES ({}, {}, {}, {}, {}, {}, {});'.format(
+            entry_id, username, session_id, request_id, request_size, request_time, throughput))
+        cursor.execute('INSERT INTO THROUGHPUTDATA(ENTRYID, USERNAME, SESSIONID, REQUESTSIZE, REQUESTTIME, THROUGHPUT) '
+                       'VALUES (?, ?, ?, ?, ?, ?);', (entry_id, username, session_id, request_size, request_time,
+                                                      throughput))
+        TH_CONN.commit()
 
-def parse_mpd(mpd_file, request, mpd_headers, client_address):
+
+def parse_mpd(mpd_file, request, mpd_headers, client_id):
     """ Module to parse the MPD_file and update the global dictionaries MPD_DICT, USER_DICT
     :param mpd_file: Path to mpd_file on local machine
     :param request: HTTP request path string
@@ -124,7 +180,7 @@ def parse_mpd(mpd_file, request, mpd_headers, client_address):
     :return:
     """
     #parse mpd that you have in cache
-    global USER_DICT, MPD_DICT
+    global USER_DICT, MPD_DICT, USER_DICT_LOCK
     dash_playback_object = read_mpd.read_mpd(mpd_file)
     MPD_DICT[request] = {'bandwidth_list': dash_playback_object.video['bandwidth_list'],
                          'http_headers': mpd_headers}
@@ -132,9 +188,12 @@ def parse_mpd(mpd_file, request, mpd_headers, client_address):
     config_cdash.LOG.info('Added info of {}: {} to MPD_DICT'.format(request, MPD_DICT))
     with open(config_cdash.MPD_DICT_JSON_FILE, 'wb') as outfile:
         json.dump(MPD_DICT, outfile)
-    USER_DICT[client_address] = {'bitrates': dash_playback_object.video['bandwidth_list']}
-    config_cdash.LOG.info('Updated the USER_DICT with {} and bitrates {}'.format(
-        client_address, dash_playback_object.video['bandwidth_list']))
+    with USER_DICT_LOCK:
+        USER_DICT[client_id] = {'bitrates': dash_playback_object.video['bandwidth_list'],
+                                'created': time.time()}
+        config_cdash.LOG.info('Updated the USER_DICT with {} and bitrates {}'.format(
+            client_id, dash_playback_object.video['bandwidth_list']))
+
 
 def hash_code(file_name):
     """
@@ -142,6 +201,7 @@ def hash_code(file_name):
     :return:
     """
     return hashlib.md5(file_name.encode())
+
 
 def make_sure_path_exists(path):
     """ Module to make sure the path exists if not create it
@@ -155,7 +215,9 @@ def make_sure_path_exists(path):
 def main():
     """ Main program wrapper """
     configure_cdash_log.configure_cdash_log()
-    global MPD_DICT # Needed to modify the global MPD_DICT
+    global MPD_DICT, TH_CONN # Needed to modify the global MPD_DICT
+    TH_CONN = create_db(THROUGHPUT_DATABASE, THROUGHPUT_TABLES)
+
     try:
         with open(config_cdash.MPD_DICT_JSON_FILE, 'rb') as infile:
             MPD_DICT = json.load(infile)

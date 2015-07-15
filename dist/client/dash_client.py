@@ -48,22 +48,23 @@ PLAYBACK = DEFAULT_PLAYBACK
 DOWNLOAD = False
 SEGMENT_LIMIT = None
 
+
 class DashPlayback:
     """
     Audio[bandwidth] : {duration, url_list}
     Video[bandwidth] : {duration, url_list}
     """
     def __init__(self):
-
         self.min_buffer_time = None
         self.playback_duration = None
         self.audio = dict()
         self.video = dict()
 
-def get_mpd(url):
+
+def get_mpd(url, mpd_opener):
     """ Module to download the MPD from the URL and save it to file"""
     try:
-        connection = urllib2.urlopen(url, timeout=10)
+        connection = mpd_opener.open(url, timeout=10)
     except urllib2.HTTPError, error:
         config_client.LOG.error("Unable to download MPD file HTTP Error: %s" % error.code)
         return None
@@ -86,9 +87,11 @@ def get_mpd(url):
     config_client.LOG.info("Downloaded the MPD file {}".format(mpd_file))
     return mpd_file
 
+
 def get_bandwidth(data, duration):
     """ Module to determine the bandwidth for a segment download"""
     return data * 8/duration
+
 
 def get_domain_name(url):
     """ Module to obtain the domain name from the URL
@@ -97,6 +100,7 @@ def get_domain_name(url):
     parsed_uri = urlparse.urlparse(url)
     domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
     return domain
+
 
 def id_generator(id_size=6):
     """ Module to create a random string with uppercase 
@@ -108,8 +112,8 @@ def id_generator(id_size=6):
 def download_segment(segment_url, dash_folder):
     """ Module to download the segment """
     try:
-        print segment_url
-        connection = urllib2.urlopen(segment_url)
+        segment_opener = get_opener()
+        connection = segment_opener.open(segment_url)
     except urllib2.HTTPError, error:
         config_client.LOG.error("Unable to download DASH Segment {} HTTP Error:{} ".format(segment_url, str(error.code)))
         return None
@@ -164,6 +168,7 @@ def print_representations(dp_object):
     print "The DASH media has the following video representations/bitrates"
     for bandwidth in dp_object.video:
         print bandwidth
+
 
 def start_playback(dp_object, domain, playback_type=None, download=False):
     """ Module that downloads the MPD-FIle and download
@@ -325,6 +330,20 @@ def create_arguments(parser):
                         default=False,
                         help="Keep the video files after playback")
 
+
+def get_opener():
+    """
+    Module to create an Urllib2 opener with the cookies
+    :return:
+    """
+    url_opener = urllib2.build_opener()
+    print config_client.COOKIE_FIELDS
+    for cookie_field in config_client.COOKIE_FIELDS:
+        print config_client.COOKIE_FIELDS[cookie_field]
+        url_opener.addheaders.append((cookie_field,
+                               config_client.COOKIE_FIELDS[cookie_field]))
+    return url_opener
+
 def main():
     """ Main Program wrapper """
     # configure the log file
@@ -340,7 +359,8 @@ def main():
         return None
     config_client.LOG.info('Downloading MPD file %s' % MPD)
     # Retrieve the MPD files for the video
-    mpd_file = get_mpd(MPD)
+    mpd_opener = get_opener()
+    mpd_file = get_mpd(MPD, mpd_opener)
     domain = get_domain_name(MPD)
     # Reading the MPD file created
     dp_object = read_mpd.read_mpd(mpd_file)

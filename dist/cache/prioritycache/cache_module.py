@@ -13,6 +13,7 @@ def segment_exists(video_segment):
         return True
     return False
 
+
 def check_content_server(video_request):
     """ Module to check if the request is in the content server
     """
