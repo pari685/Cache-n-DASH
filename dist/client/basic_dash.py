@@ -36,7 +36,6 @@ def basic_dash(segment_number, bitrates, average_dwn_time,
 
     # Check if we need to increase or decrease bitrate
     if download_rate > current_bitrate * config_client.BASIC_UPPER_THRESHOLD:
-
         # Increase rate only if  download_rate is higher by a certain margin
         # Check if the bitrate is already at max
         if current_bitrate == bitrates[-1]:

@@ -48,15 +48,6 @@ MPD_DICT = {}
 
 USER_DICT_LOCK = threading.Lock()
 USER_DICT = {}
-THROUGHPUT_DATABASE = "C:\\Users\\pjuluri\\Desktop\\Throughput_db\\throughput_{}.db".format(time.strftime("%Y-%m-%d_%H_%M_%S"))
-THROUGHPUT_TABLES = ["CREATE TABLE THROUGHPUTDATA("
-                     "ENTRYID TIMESTAMP, "
-                     "USERNAME Text,"
-                     "SESSIONID Text,"
-                     "REQUESTID INTEGER PRIMARY KEY,"
-                     "REQUESTSIZE FLOAT,"
-                     "REQUESTTIME FLOAT,"
-                     "THROUGHPUT FLOAT);"]
 
 TH_CONN = None
 cache_manager = None
@@ -216,8 +207,7 @@ def main():
     """ Main program wrapper """
     configure_cdash_log.configure_cdash_log()
     global MPD_DICT, TH_CONN # Needed to modify the global MPD_DICT
-    TH_CONN = create_db(THROUGHPUT_DATABASE, THROUGHPUT_TABLES)
-
+    TH_CONN = create_db(config_cdash.THROUGHPUT_DATABASE, config_cdash.THROUGHPUT_TABLES)
     try:
         with open(config_cdash.MPD_DICT_JSON_FILE, 'rb') as infile:
             MPD_DICT = json.load(infile)

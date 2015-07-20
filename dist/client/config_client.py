@@ -79,6 +79,8 @@ JSON_HANDLE['playback_info'] = {'start_time': None,
                                 'available_bitrates':[]
                                 }
 # Throughput-Based Adaptation
+# WARNING: MAKE SURE YOU CHANGE THESE IN THE CACHE AS WELL
+# TODO: Set these paramters at the start. (MPD or cookies??)
 BASIC_THRESHOLD = 10
 BASIC_UPPER_THRESHOLD = 1.2
 # Number of segments for moving average

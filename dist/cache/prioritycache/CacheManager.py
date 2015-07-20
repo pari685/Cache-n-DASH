@@ -27,11 +27,10 @@ import sqlite3
 import time
 from prioritycache.cache_module import check_content_server
 from prioritycache.cache_module import segment_exists
-from prioritycache.prefetch_scheme import get_next_simple
+from prioritycache.prefetch_scheme import get_prefetch
 from PriorityCache import PriorityCache
 import config_cdash
 from create_db import create_db
-
 
 
 class CacheManager():
@@ -97,7 +96,7 @@ class CacheManager():
                         break
                     except sqlite3.OperationalError:
                         continue
-                next_request = get_next_simple(current_request)
+                next_request = get_prefetch(current_request, 'BASIC')
                 if not segment_exists(next_request):
                     if check_content_server(next_request):
                         config_cdash.LOG.info('CTHREAD: Current segment: {}, Next segment: {}'.format(current_request, next_request))

@@ -24,6 +24,7 @@ Contact Email: pjuluri@umkc.edu
 """
 
 import os
+import time
 from time import strftime
 
 # CACHE Server Parameters
@@ -32,7 +33,7 @@ PORT_NUMBER = 8001
 MPD_SOURCE_LIST = ['BigBuckBunny_4s_simple_2014_05_09.mpd']
 MPD_DICT_JSON_FILE = 'C:\\Users\\pjuluri\\Desktop\\Videos\\MPD_DICT.json'
 MPD_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\MPD_FILES\\'
-#####  Parameters for the priority cache
+# Parameters for the priority cache
 FETCH_CODE = 'FETCH'
 PREFETCH_CODE = 'PRE-FETCH'
 CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/BigBuckBunny/4sec/'
@@ -48,57 +49,77 @@ TABLE_RETRY_TIME = 5
 TABLE_LIST = ["CREATE TABLE Prefetch(Segment Text, Weightage INT)",
               "CREATE TABLE Current(Segment Text)"]
 
+# We store the throughput values in a local database
+THROUGHPUT_DATABASE = "C:\\Users\\pjuluri\\Desktop\\Throughput_db\\throughput_{}.db".format(time.strftime("%Y-%m-%d_%H_%M_%S"))
+THROUGHPUT_TABLES = ["CREATE TABLE THROUGHPUTDATA("
+                     "ENTRYID TIMESTAMP, "
+                     "USERNAME Text,"
+                     "SESSIONID Text,"
+                     "REQUESTID INTEGER PRIMARY KEY,"
+                     "REQUESTSIZE FLOAT,"
+                     "REQUESTTIME FLOAT,"
+                     "THROUGHPUT FLOAT);"]
 
 # Cache Logging
 LOG_NAME = 'cache_LOG'
-# LOG level to be setby the configure_log file
+# LOG level to be set by the configure_log file
 LOG_LEVEL = None
 
 # Initialize the Log Folders
 LOG_FOLDER = "C:\\Users\\pjuluri\\Desktop\\Cache_LOGS\\"
 if not os.path.exists(LOG_FOLDER):
-        os.makedirs(LOG_FOLDER)
+    os.makedirs(LOG_FOLDER)
 LOG_FILENAME = os.path.join(LOG_FOLDER,
-        strftime('cache_Runtime_LOG_%Y-%m-%d.%H_%M_%S.log'))
+                            strftime('cache_Runtime_LOG_%Y-%m-%d.%H_%M_%S.log'))
 
 LOG_FILE_HANDLE = None
 # To be set by configure_log_file.py
 LOG = None
 
-
-
+# TODO: Maybe put the following in a database?
 VIDEO_CACHE_CONTENT = {
     'bunny': {'available-bitrate': [45226, 88783, 128503, 177437, 217761, 255865, 323047, 378355, 509091,
-                                            577751, 782553, 1008699, 1207152, 1473801, 2087347, 2409742, 2944291,
-                                            3340509, 3613836, 3936261],
-                     'segment-range': [1, 150],
-                     'string-match': 'BigBuckBunny_4s'},
+                                    577751, 782553, 1008699, 1207152, 1473801, 2087347, 2409742, 2944291,
+                                    3340509, 3613836, 3936261],
+              'segment-range': [1, 150],
+              'string-match': 'BigBuckBunny_4s'},
     'forest': {'available-bitrate': [46516, 91651, 136761, 185092, 231141, 276163, 365184, 461029, 552051,
-                                             642534,824821, 1005167, 1260896, 1512020, 1754001, 2143443, 2506133,
-                                             3170853, 3744774],
-                       'segment-range':[1, 114],
-                       'string-match': 'OfForestAndMen_4s'},
+                                     642534,824821, 1005167, 1260896, 1512020, 1754001, 2143443, 2506133,
+                                     3170853, 3744774],
+               'segment-range':[1, 114],
+               'string-match': 'OfForestAndMen_4s'},
     'swiss': {'available-bitrate': [88745, 128171, 172453, 215003, 255984, 330491, 430406, 600840, 754258,
-                                              930297, 1323244, 1716694, 1988387, 2708994, 3430035, 3817613, 4003428],
-                        'segment-range': [4,78,34,20],
-                        'string-match': 'TheSwissAccount_4s'},
+                                    930297, 1323244, 1716694, 1988387, 2708994, 3430035, 3817613, 4003428],
+              'segment-range': [4,78,34,20],
+              'string-match': 'TheSwissAccount_4s'},
     'valkaama': {'available-bitrate': [45679, 85914, 118584, 172627, 209596, 242301, 298523, 1861036, 2317655, 2755290,
                                        3522543, 4118338, 4561266, 432505, 505903, 574104, 811486, 983335, 1217742,
                                        1422377],
                  'segment-range': [1, 1162],
                  'string-match': 'Valkaama_4'},
     'ed': {'available-bitrate': [45791, 89889, 129426, 179119, 220743, 259179, 323473, 375852, 516656,
-                                             582757, 792489, 1016017, 1197604, 1456380, 2087288, 2394379, 2908119,
-                                             3339937, 3666428, 4066615],
-                       'segment-range': [1, 164],
-                       'string-match': 'ElephantsDream_4s'},
+                                 582757, 792489, 1016017, 1197604, 1456380, 2087288, 2394379, 2908119,
+                                 3339937, 3666428, 4066615],
+           'segment-range': [1, 164],
+           'string-match': 'ElephantsDream_4s'},
     'redbull': {'available-bitrate': [100733, 149211, 200933, 250302, 299039, 395090, 500459, 700159, 891912,
-                                                 1171990, 1498197, 1991890, 2465785, 2995811, 3992562, 4979124,
-                                                 5936225],
-                           'segment-range': [1, 10],
-                           'string-match': 'RedBull_4'},
+                                      1171990, 1498197, 1991890, 2465785, 2995811, 3992562, 4979124,
+                                      5936225],
+                'segment-range': [1, 10],
+                'string-match': 'RedBull_4'},
     'tos': {'available-bitrate': [101, 65509, 129510, 191511, 253270, 504741, 807450, 1506971, 2416099,
-                                           3004351, 4011653, 6025488, 10045361],
-                     'segment-range': [1, 184],
-                     'string-match': 'TearsOfSteel_4s_'},
-    }
+                                  3004351, 4011653, 6025488, 10045361],
+            'segment-range': [1, 184],
+            'string-match': 'TearsOfSteel_4s_'}
+}
+
+
+# Throughput Based Adaptation
+# WARNING: MAKE SURE YOU CHANGE THESE IN THE CACHE AS WELL
+# TODO: Set these parameters at the start. (MPD or cookies??)
+BASIC_THRESHOLD = 10
+BASIC_UPPER_THRESHOLD = 1.2
+# Number of segments for moving average
+BASIC_DELTA_COUNT = 5
+MAX_BUFFER_SIZE = 60
+INITIAL_BUFFERING_COUNT = 2

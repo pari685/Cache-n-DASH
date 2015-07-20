@@ -8,8 +8,7 @@ Testing:
     dash_client.playback_duration(mpd_file, 'http://198.248.242.16:8005/')
 
     From commandline:
-    python dash_client.py -m "http://198.248.242.16:8006/media/mpd/x4ukwHdACDw.mpd" -p "all"
-    python dash_client.py -m "http://127.0.0.1:8000/media/mpd/x4ukwHdACDw.mpd" -p "basic"
+    python dash_client.py -m "http://127.0.0.1:8001/BigBuckBunny_4s_simple_2014_05_09.mpd" -p "basic"
 
 """
 from __future__ import division
@@ -24,13 +23,11 @@ import timeit
 import httplib
 from string import ascii_letters, digits
 from argparse import ArgumentParser
-from collections import defaultdict
 import basic_dash
 import config_client
 import dash_buffer
 from configure_log_file import configure_log_file, write_json
 import time
-
 try:
     WindowsError
 except NameError:
@@ -115,7 +112,8 @@ def download_segment(segment_url, dash_folder):
         segment_opener = get_opener()
         connection = segment_opener.open(segment_url)
     except urllib2.HTTPError, error:
-        config_client.LOG.error("Unable to download DASH Segment {} HTTP Error:{} ".format(segment_url, str(error.code)))
+        config_client.LOG.error("Unable to download DASH Segment {} HTTP Error:{} ".format(
+            segment_url, str(error.code)))
         return None
     parsed_uri = urlparse.urlparse(segment_url)
     segment_path = '{uri.path}'.format(uri=parsed_uri)
@@ -179,9 +177,8 @@ def start_playback(dp_object, domain, playback_type=None, download=False):
         :param dp_object:       The DASH-playback object
         :param domain:          The domain name of the server (The segment URLS are domain + relative_address)
         :param playback_type:   The type of playback
-                                1. 'BASIC' - The basic adapatation scheme (Based on Throughput)
+                                1. 'BASIC' - The basic adaptation scheme (Based on Throughput)
         :param download: Set to True if the segments are to be stored locally (Boolean). Default False
-        :param video_segment_duration: Playback duratoin of each segment
         :return:
     """
     # Initialize the DASH buffer
@@ -191,26 +188,24 @@ def start_playback(dp_object, domain, playback_type=None, download=False):
     # A folder to save the segments in
     file_identifier = id_generator()
     config_client.LOG.info("The segments are stored in %s" % file_identifier)
-    dp_list = defaultdict(defaultdict)
+    # dp_list = defaultdict(defaultdict)
     bitrates = dp_object.video['bandwidth_list']
     bitrates.sort()
-    print bitrates
     average_dwn_time = 0
     segment_files = []
     # For basic adaptation
     previous_segment_times = []
     recent_download_sizes = []
-    weighted_mean_object = None
     current_bitrate = bitrates[0]
     previous_bitrate = None
     total_downloaded = 0
     # Delay in terms of the number of segments
     delay = 0
     segment_duration = 0
-    segment_size = segment_download_time = None
+    segment_download_time = None
     # Start playback of all the segments
     downloaded_duration = 0
-    #for segment_number, segment in enumerate(dp_list, int(dp_object.video['start'])):
+    # for segment_number, segment in enumerate(dp_list, int(dp_object.video['start'])):
     segment_number = dp_object.video['start']
     while downloaded_duration < dp_object.playback_duration:
         config_client.LOG.info(" {}: Processing the segment {}".format(playback_type.upper(), segment_number))
@@ -228,18 +223,20 @@ def start_playback(dp_object, domain, playback_type=None, download=False):
         else:
             if playback_type.upper() == "BASIC":
                 current_bitrate, average_dwn_time = basic_dash.basic_dash(segment_number, bitrates, average_dwn_time,
-                                                                            recent_download_sizes,
-                                                                            previous_segment_times, current_bitrate)
+                                                                          recent_download_sizes,
+                                                                          previous_segment_times, current_bitrate)
 
                 if dash_player.buffer.qsize() > config_client.BASIC_THRESHOLD:
                     delay = dash_player.buffer.qsize() - config_client.BASIC_THRESHOLD
                 config_client.LOG.info("Basic-DASH: Selected {} for the segment {}".format(current_bitrate,
-                                                                                         segment_number + 1))
+                                                                                           segment_number + 1))
             else:
-                config_client.LOG.error("Unknown playback type:{}. Continuing with basic playback".format(playback_type))
+                config_client.LOG.error("Unknown playback type:{}. Continuing with basic playback".format(
+                    playback_type))
                 current_bitrate, average_dwn_time = basic_dash.basic_dash(segment_number, bitrates, average_dwn_time,
                                                                           segment_download_time, current_bitrate)
-        segment_path = read_mpd.get_segment_path(dp_object.video, dp_object.playback_duration,current_bitrate, segment_number)
+        segment_path = read_mpd.get_segment_path(dp_object.video, dp_object.playback_duration,current_bitrate,
+                                                 segment_number)
         segment_url = urlparse.urljoin(domain, segment_path)
         config_client.LOG.info("{}: Segment URL = {}".format(playback_type.upper(), segment_url))
         if delay:
@@ -264,7 +261,7 @@ def start_playback(dp_object, domain, playback_type=None, download=False):
         if "segment_info" not in config_client.JSON_HANDLE:
             config_client.JSON_HANDLE["segment_info"] = list()
         config_client.JSON_HANDLE["segment_info"].append((segment_name, current_bitrate, segment_size,
-                                                        segment_download_time))
+                                                          segment_download_time))
         total_downloaded += segment_size
         config_client.LOG.info("{} : The total downloaded = {}, segment_size = {}, segment_number = {}".format(
             playback_type.upper(),
@@ -313,7 +310,6 @@ def clean_files(folder_path):
         config_client.LOG.info("Deleted the folder '{}' and its contents".format(folder_path))
 
 
-
 def create_arguments(parser):
     """ Adding arguments to the parser """
     parser.add_argument('-m', '--MPD',                   
@@ -341,8 +337,9 @@ def get_opener():
     for cookie_field in config_client.COOKIE_FIELDS:
         print config_client.COOKIE_FIELDS[cookie_field]
         url_opener.addheaders.append((cookie_field,
-                               config_client.COOKIE_FIELDS[cookie_field]))
+                                      config_client.COOKIE_FIELDS[cookie_field]))
     return url_opener
+
 
 def main():
     """ Main Program wrapper """
