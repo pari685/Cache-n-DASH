@@ -27,6 +27,7 @@ import time
 from prioritycache.cache_module import check_content_server
 from prioritycache.cache_module import segment_exists
 from prioritycache.prefetch_scheme import get_prefetch
+import configure_cdash_log
 from PriorityCache import PriorityCache
 import config_cdash
 import Queue
@@ -63,8 +64,10 @@ class CacheManager():
         config_cdash.LOG.info('Fetching the file {}'.format(file_path))
         # Add the current request to the current_thread
         # This is to ensure that the pre-fetch process does not hold the
-        # FETCH process self.cur.execute("CREATE TABLE Current(ID INT, Segment Text)")
+
         local_filepath, http_headers = self.cache.get_file(file_path, config_cdash.FETCH_CODE)
+        config_cdash.LOG.info('Added {} to current queue'.format(file_path))
+        self.current_queue.put(file_path)
         self.fetch_requests += 1
         config_cdash.LOG.info('Total fetch Requests = {}'.format(self.fetch_requests))
         return local_filepath, http_headers
@@ -77,13 +80,13 @@ class CacheManager():
         We use a separate prefetch queue to ensure that the prefetch does not affect the performance
         of the current requests
         """
-        current_request = None
+        config_cdash.LOG.info('Current Thread: Started thread. Stop value = {}'.format(self.stop.is_set()))
         while not self.stop.is_set():
             try:
                 current_request = self.current_queue.get(timeout=None)
+                config_cdash.LOG.info('Retrieved the file: {}'.format(current_request))
             except Queue.Empty:
                 config_cdash.LOG.error('Current Thread: Thread GET returned Empty value')
-                # time.sleep(config_cdash.WAIT_TIME)
                 current_request = None
                 continue
             # Determining the next bitrates and adding to the prefetch list

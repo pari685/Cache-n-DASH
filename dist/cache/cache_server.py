@@ -38,7 +38,6 @@ import timeit
 import datetime
 from os import stat
 import threading
-from create_db import create_db
 from prioritycache import CacheManager
 import configure_cdash_log
 from prioritycache.cache_module import check_content_server
@@ -78,7 +77,8 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             request_path = request.replace('/', os.path.sep)
             make_sure_path_exists(config_cdash.MPD_FOLDER)
             local_mpd_path = os.path.join(config_cdash.MPD_FOLDER, request_path)
-            config_cdash.LOG.info(self.headers)
+            for header in self.headers:
+                config_cdash.LOG.info(header)
             self.send_response(HTTP_OK)
             for header, header_value in MPD_DICT[request]['http_headers'].items():
                 self.send_header(header, header_value)
@@ -203,10 +203,12 @@ def make_sure_path_exists(path):
         if exception.errno != errno.EEXIST:
             raise
 
+
 def main():
     """ Main program wrapper """
-    configure_cdash_log.configure_cdash_log()
-    global MPD_DICT#, TH_CONN  Needed to modify the global MPD_DICT
+    config_cdash.LOG = configure_cdash_log.configure_log(config_cdash.LOG_FILENAME, config_cdash.LOG_NAME,
+                                                         config_cdash.LOG_LEVEL)
+    global MPD_DICT
     # TH_CONN = create_db(config_cdash.THROUGHPUT_DATABASE, config_cdash.THROUGHPUT_TABLES)
     try:
         with open(config_cdash.MPD_DICT_JSON_FILE, 'rb') as infile:

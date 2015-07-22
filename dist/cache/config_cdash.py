@@ -25,6 +25,7 @@ Contact Email: pjuluri@umkc.edu
 
 import os
 import time
+import logging
 from time import strftime
 
 # CACHE Server Parameters
@@ -63,18 +64,19 @@ THROUGHPUT_TABLES = ["CREATE TABLE THROUGHPUTDATA("
 # Cache Logging
 LOG_NAME = 'cache_LOG'
 # LOG level to be set by the configure_log file
-LOG_LEVEL = None
+LOG_LEVEL = logging.INFO
 
 # Initialize the Log Folders
 LOG_FOLDER = "C:\\Users\\pjuluri\\Desktop\\Cache_LOGS\\"
 if not os.path.exists(LOG_FOLDER):
     os.makedirs(LOG_FOLDER)
-LOG_FILENAME = os.path.join(LOG_FOLDER,
-                            strftime('cache_Runtime_LOG_%Y-%m-%d.%H_%M_%S.log'))
-
+LOG_FILENAME = os.path.join(LOG_FOLDER, strftime('cache_Runtime_LOG_%Y-%m-%d.%H_%M_%S.log'))
 LOG_FILE_HANDLE = None
 # To be set by configure_log_file.py
 LOG = None
+
+
+
 
 # TODO: Maybe put the following in a database?
 VIDEO_CACHE_CONTENT = {
