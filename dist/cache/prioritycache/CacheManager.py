@@ -23,14 +23,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
 import threading
-import sqlite3
 import time
 from prioritycache.cache_module import check_content_server
 from prioritycache.cache_module import segment_exists
 from prioritycache.prefetch_scheme import get_prefetch
 from PriorityCache import PriorityCache
 import config_cdash
-from create_db import create_db
+import Queue
 
 
 class CacheManager():
@@ -39,11 +38,11 @@ class CacheManager():
             Start the Priority Cache with max_size = cache_size
         """
         self.fetch_requests = 0
-        self.prefetch_requests = 0
+        self.prefetch_request_count = 0
         config_cdash.LOG.info('Initializing the Cache Manager')
         self.cache = PriorityCache(cache_size)
-        self.conn = create_db(config_cdash.CACHE_DATABASE, config_cdash.TABLE_LIST)
-        self.cur = self.conn.cursor()
+        self.prefetch_queue = Queue.Queue()
+        self.current_queue = Queue.Queue()
         self.stop = threading.Event()
         self.current_thread = threading.Thread(target=self.current_function, args=())
         self.current_thread.daemon = True
@@ -65,9 +64,6 @@ class CacheManager():
         # Add the current request to the current_thread
         # This is to ensure that the pre-fetch process does not hold the
         # FETCH process self.cur.execute("CREATE TABLE Current(ID INT, Segment Text)")
-        self.cur.execute("INSERT INTO Current(Segment) VALUES('{}');".format(file_path))
-        # Return the file path
-        self.conn.commit()
         local_filepath, http_headers = self.cache.get_file(file_path, config_cdash.FETCH_CODE)
         self.fetch_requests += 1
         config_cdash.LOG.info('Total fetch Requests = {}'.format(self.fetch_requests))
@@ -75,67 +71,51 @@ class CacheManager():
 
     def current_function(self):
         """
-        Module that determines the next segment for all the current fetched bitrates
+        Thread reads the current requests and generates the prefetch requests
+        that determines the next segment for all the current fetched bitrates.
+
+        We use a separate prefetch queue to ensure that the prefetch does not affect the performance
+        of the current requests
         """
-        thread_conn = create_db(config_cdash.CACHE_DATABASE, config_cdash.TABLE_LIST)
-        thread_cur = thread_conn.cursor()
+        current_request = None
         while not self.stop.is_set():
             try:
-                thread_cur.execute('Select * from Current')
-            except sqlite3.OperationalError:
-                config_cdash.LOG.error('CTHREAD: Could not read from the Current table')
-                time.sleep(config_cdash.WAIT_TIME)
+                current_request = self.current_queue.get(timeout=None)
+            except Queue.Empty:
+                config_cdash.LOG.error('Current Thread: Thread GET returned Empty value')
+                # time.sleep(config_cdash.WAIT_TIME)
+                current_request = None
                 continue
-            rows = thread_cur.fetchall()
             # Determining the next bitrates and adding to the prefetch list
-            for row in rows:
-                current_request = row[0]
-                while True:
-                    try:
-                        thread_cur.execute("DELETE FROM Current WHERE Segment='{}';".format(current_request))
-                        break
-                    except sqlite3.OperationalError:
-                        continue
-                next_request = get_prefetch(current_request, 'BASIC')
-                if not segment_exists(next_request):
-                    if check_content_server(next_request):
-                        config_cdash.LOG.info('CTHREAD: Current segment: {}, Next segment: {}'.format(current_request, next_request))
-                        thread_cur.execute("INSERT INTO Prefetch(Segment) VALUES('{}');".format(next_request))
-                    else:
-                        config_cdash.LOG.info('CTHREAD: Invalid Next segment: {}'.format(current_request, next_request))
-                thread_conn.commit()
+            if current_request:
+                prefetch_request, prefetch_bitrate = get_prefetch(current_request, 'BASIC')
+            if not segment_exists(prefetch_request):
+                if check_content_server(prefetch_request):
+                    config_cdash.LOG.info('Current Thread: Current segment: {}, Next segment: {}'.format(current_request,
+                                                                                                  prefetch_request))
+                    self.prefetch_queue.put(prefetch_request)
+                else:
+                    config_cdash.LOG.info('Current Thread: Invalid Next segment: {}'.format(current_request, prefetch_request))
         else:
-            config_cdash.LOG.warning('Current thread terminated')
+            config_cdash.LOG.warning('Current Thread: terminated')
 
     def prefetch_function(self):
         """ Function that reads the contents of the prefetch table in the database and pre-fetches the file into
             the cache
+            We use a separate prefetch queue to ensure that the prefetch does not affect the performance
+            of the current requests
         """
-        thread_conn = create_db(config_cdash.CACHE_DATABASE, config_cdash.TABLE_LIST)
-        thread_cur = thread_conn.cursor()
         while not self.stop.is_set():
             try:
                 # Pre-fetching the files
-                # TODO: Extend the weightage parameter
-                thread_cur.execute('SELECT * from Prefetch;')
-            except sqlite3.OperationalError:
-                config_cdash.LOG.error('Could not read from the Prefetch table')
+                prefetch_request = self.prefetch_queue.get(timeout=None)
+            except Queue.Empty:
+                config_cdash.LOG.error('Could not read from the Prefetch queue')
                 time.sleep(config_cdash.WAIT_TIME)
                 continue
-            rows = thread_cur.fetchall()
-            for row in rows:
-                prefetch_request = row[0]
-                while True:
-                    # Try to write to database.
-                    try:
-                        thread_cur.execute("DELETE FROM Prefetch WHERE Segment='{}';".format(prefetch_request))
-                        break
-                    except sqlite3.OperationalError:
-                        continue
-                thread_conn.commit()
-                config_cdash.LOG.info('Pre-fetching the segment: {}'.format(prefetch_request))
-                self.cache.get_file(prefetch_request, config_cdash.PREFETCH_CODE)
-                self.prefetch_requests += 1
-                config_cdash.LOG.info('Total prefetch Requests = {}'.format(self.prefetch_requests))
+            config_cdash.LOG.info('Pre-fetching the segment: {}'.format(prefetch_request))
+            self.cache.get_file(prefetch_request, config_cdash.PREFETCH_CODE)
+            self.prefetch_request_count += 1
+            config_cdash.LOG.info('Total prefetch Requests = {}'.format(self.prefetch_requests))
         else:
             config_cdash.LOG.warning('Prefetch thread terminated')

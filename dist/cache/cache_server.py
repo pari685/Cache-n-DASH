@@ -151,15 +151,15 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
         # If valid request sent
         entry_id = datetime.datetime.now()
-        cursor = TH_CONN.cursor()
+        # cursor = TH_CONN.cursor()
         throughput = float(request_size)/request_time
         config_cdash.LOG.info('Adding row to Throughput database : '
                               'INSERT INTO THROUGHPUTDATA VALUES ({}, {}, {}, {}, {}, {}, {});'.format(
             entry_id, username, session_id, request_id, request_size, request_time, throughput))
-        cursor.execute('INSERT INTO THROUGHPUTDATA(ENTRYID, USERNAME, SESSIONID, REQUESTSIZE, REQUESTTIME, THROUGHPUT) '
-                       'VALUES (?, ?, ?, ?, ?, ?);', (entry_id, username, session_id, request_size, request_time,
-                                                      throughput))
-        TH_CONN.commit()
+        # cursor.execute('INSERT INTO THROUGHPUTDATA(ENTRYID, USERNAME, SESSIONID, REQUESTSIZE, REQUESTTIME, THROUGHPUT) '
+        #               'VALUES (?, ?, ?, ?, ?, ?);', (entry_id, username, session_id, request_size, request_time,
+        #                                              throughput))
+        # TH_CONN.commit()
 
 
 def parse_mpd(mpd_file, request, mpd_headers, client_id):
@@ -206,8 +206,8 @@ def make_sure_path_exists(path):
 def main():
     """ Main program wrapper """
     configure_cdash_log.configure_cdash_log()
-    global MPD_DICT, TH_CONN # Needed to modify the global MPD_DICT
-    TH_CONN = create_db(config_cdash.THROUGHPUT_DATABASE, config_cdash.THROUGHPUT_TABLES)
+    global MPD_DICT#, TH_CONN  Needed to modify the global MPD_DICT
+    # TH_CONN = create_db(config_cdash.THROUGHPUT_DATABASE, config_cdash.THROUGHPUT_TABLES)
     try:
         with open(config_cdash.MPD_DICT_JSON_FILE, 'rb') as infile:
             MPD_DICT = json.load(infile)

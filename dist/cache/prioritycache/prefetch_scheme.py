@@ -41,6 +41,8 @@ def get_prefetch(video_request, pre_fetch_scheme='BASIC', bitrates=None, through
                 else:
                     next_bitrate = bitrates[index - 1]
                 break
+    else:
+        next_bitrate = current_bitrate
     next_segment = str(segment_number + 1)
     next_segment_name = ''.join((config_cdash.VIDEO_CACHE_CONTENT[video_id]['string-match'], next_segment, '.m4s'))
     current_dir = os.path.dirname(video_request)

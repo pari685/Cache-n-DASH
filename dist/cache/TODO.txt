@@ -1,4 +1,4 @@
-1. Add the proposed prefetch scheme
+1. Add the proposed prefetch scheme with the weight parameter
 2. Smarter Cache replacement
 3. Can we eliminate the prefetch database? Check implementations with queue.
 4. Exchange the rate adaptation parameters at the start of the session?
