@@ -91,7 +91,7 @@ class CacheManager():
                 continue
             # Determining the next bitrates and adding to the prefetch list
             if current_request:
-                prefetch_request, prefetch_bitrate = get_prefetch(current_request, 'BASIC')
+                prefetch_request, prefetch_bitrate = get_prefetch(current_request, config_cdash.PREFETCH_SCHEME)
             if not segment_exists(prefetch_request):
                 if check_content_server(prefetch_request):
                     config_cdash.LOG.info('Current Thread: Current segment: {}, Next segment: {}'.format(current_request,

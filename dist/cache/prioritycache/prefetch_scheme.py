@@ -19,7 +19,7 @@ def get_prefetch(video_request, pre_fetch_scheme='BASIC', bitrates=None, through
     if 'init' in video_request:
         next_segment = '1'
         next_bitrate = bitrates[0]
-    elif 'smart' in pre_fetch_scheme.lower():
+    elif 'SMART' in pre_fetch_scheme.upper():
         # Check if we need to increase or decrease bitrate
         if throughput > current_bitrate * config_cdash.BASIC_UPPER_THRESHOLD:
             # Increase rate only if  download_rate is higher by a certain margin
