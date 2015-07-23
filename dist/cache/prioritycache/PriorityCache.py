@@ -69,9 +69,12 @@ class PriorityCache():
             # Need to fetch from content server
             # TODO: Check if the request is valid (Use Rohit's code)
             local_filepath, http_headers = download_segment(key)
-            self.cache[key] = (local_filepath, http_headers)
-            self.cache_queue.append(key)
-            config_cdash.LOG.info('Adding key {} to cache'.format(key))
+            if key not in self.cache:
+                self.cache[key] = (local_filepath, http_headers)
+                self.cache_queue.append(key)
+                config_cdash.LOG.info('Adding key {} to cache'.format(key))
+            else:
+                config_cdash.LOG.info('key {} already in Cache'.format(key))
             while True:
                 if len(self.cache) > self.maxsize:
                     self.pop_cache()
@@ -89,7 +92,7 @@ class PriorityCache():
         key = self.cache_queue.popleft()
         try:
             del self.cache[key]
-            config_cdash.LOG.error('Deleted Key {} from Cache'.format(key))
+            config_cdash.LOG.info('Deleted Key {} from Cache'.format(key))
         except KeyError:
             config_cdash.LOG.error('Key {} not found in Cache'.format(key))
 
