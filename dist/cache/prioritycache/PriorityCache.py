@@ -71,6 +71,7 @@ class PriorityCache():
             local_filepath, http_headers = download_segment(key)
             self.cache[key] = (local_filepath, http_headers)
             self.cache_queue.append(key)
+            config_cdash.LOG.info('Adding key {} to cache'.format(key))
             while True:
                 if len(self.cache) > self.maxsize:
                     self.pop_cache()
@@ -86,7 +87,11 @@ class PriorityCache():
             Based on LRU
         """
         key = self.cache_queue.popleft()
-        del self.cache[key]
+        try:
+            del self.cache[key]
+            config_cdash.LOG.error('Deleted Key {} from Cache'.format(key))
+        except KeyError:
+            config_cdash.LOG.error('Key {} not found in Cache'.format(key))
 
     def clear(self):
             self.cache.clear()

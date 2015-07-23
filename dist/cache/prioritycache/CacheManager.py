@@ -112,7 +112,6 @@ class CacheManager():
         while not self.stop.is_set():
             try:
                 # Pre-fetching the files
-                config_cdash.LOG.error('Waiting for Pre-fetch')
                 prefetch_request = self.prefetch_queue.get(timeout=None)
             except Queue.Empty:
                 config_cdash.LOG.error('Could not read from the Pre-fetch queue')
