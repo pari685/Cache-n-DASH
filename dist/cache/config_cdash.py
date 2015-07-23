@@ -41,8 +41,8 @@ CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/Big
 VIDEO_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\Videos\\'
 CACHE_LIMIT = 100
 PREFETCH_LIMIT = 100
-#PREFETCH_SCHEME = 'BASIC'
-PREFETCH_SCHEME = 'SMART'
+PREFETCH_SCHEME = 'BASIC'
+# PREFETCH_SCHEME = 'SMART'
 CURRENT_THREAD = True
 PREFETCH_THREAD = True
 
@@ -72,15 +72,12 @@ LOG_LEVEL = logging.INFO
 LOG_FOLDER = "C:\\Users\\pjuluri\\Desktop\\Cache_LOGS\\"
 if not os.path.exists(LOG_FOLDER):
     os.makedirs(LOG_FOLDER)
-LOG_FILENAME = os.path.join(LOG_FOLDER, strftime('cache_Runtime_LOG_%Y-%m-%d.%H_%M_%S.log'))
+LOG_FILENAME = os.path.join(LOG_FOLDER, strftime('cache_n_dash_LOG_{}_%Y-%m-%d.%H_%M_%S.log'.format(PREFETCH_SCHEME)))
 LOG_FILE_HANDLE = None
 # To be set by configure_log_file.py
 LOG = None
 
-
-
-
-# TODO: Maybe put the following in a database?
+# TODO: Maybe put the following in a JSON?
 VIDEO_CACHE_CONTENT = {
     'bunny': {'available-bitrate': [45226, 88783, 128503, 177437, 217761, 255865, 323047, 378355, 509091,
                                     577751, 782553, 1008699, 1207152, 1473801, 2087347, 2409742, 2944291,
@@ -119,7 +116,7 @@ VIDEO_CACHE_CONTENT = {
 
 
 # Throughput Based Adaptation
-# WARNING: MAKE SURE YOU CHANGE THESE IN THE CACHE AS WELL
+# WARNING: MAKE SURE YOU CHANGE THESE IN THE CLIENT AS WELL
 # TODO: Set these parameters at the start. (MPD or cookies??)
 BASIC_THRESHOLD = 10
 BASIC_UPPER_THRESHOLD = 1.2

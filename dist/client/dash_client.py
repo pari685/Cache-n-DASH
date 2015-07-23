@@ -68,7 +68,6 @@ def get_mpd(url, mpd_opener):
     except urllib2.URLError:
         error_message = "URLError. Unable to reach Server.Check if Server active"
         config_client.LOG.error(error_message)
-        print error_message
         return None
     except IOError, httplib.HTTPException:
         message = "Unable to , file_identifierdownload MPD file HTTP Error."
@@ -333,9 +332,8 @@ def get_opener():
     :return:
     """
     url_opener = urllib2.build_opener()
-    print config_client.COOKIE_FIELDS
+    config_client.LOG.info("Cookie info = {}".format(config_client.COOKIE_FIELDS))
     for cookie_field in config_client.COOKIE_FIELDS:
-        print config_client.COOKIE_FIELDS[cookie_field]
         url_opener.addheaders.append((cookie_field,
                                       config_client.COOKIE_FIELDS[cookie_field]))
     return url_opener

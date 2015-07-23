@@ -1,4 +1,4 @@
 Cache-n-DASH
 ==================
-A smart Caching framework for DASH video stremaing services
+A smart Caching framework for DASH video streaming services
 

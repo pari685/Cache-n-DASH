@@ -97,6 +97,7 @@ class CacheManager():
                     config_cdash.LOG.info('Current Thread: Current segment: {}, Next segment: {}'.format(current_request,
                                                                                                   prefetch_request))
                     self.prefetch_queue.put(prefetch_request)
+                    config_cdash.LOG.info('Pre-fetch queue count = {}'.format(self.prefetch_queue.qsize()))
                 else:
                     config_cdash.LOG.info('Current Thread: Invalid Next segment: {}'.format(current_request, prefetch_request))
         else:
@@ -111,14 +112,15 @@ class CacheManager():
         while not self.stop.is_set():
             try:
                 # Pre-fetching the files
+                config_cdash.LOG.error('Waiting for Pre-fetch')
                 prefetch_request = self.prefetch_queue.get(timeout=None)
             except Queue.Empty:
-                config_cdash.LOG.error('Could not read from the Prefetch queue')
+                config_cdash.LOG.error('Could not read from the Pre-fetch queue')
                 time.sleep(config_cdash.WAIT_TIME)
                 continue
             config_cdash.LOG.info('Pre-fetching the segment: {}'.format(prefetch_request))
             self.cache.get_file(prefetch_request, config_cdash.PREFETCH_CODE)
             self.prefetch_request_count += 1
-            config_cdash.LOG.info('Total prefetch Requests = {}'.format(self.prefetch_requests))
+            config_cdash.LOG.info('Pre-fetch request count = {}'.format(self.prefetch_request_count))
         else:
-            config_cdash.LOG.warning('Prefetch thread terminated')
+            config_cdash.LOG.warning('Pre-fetch thread terminated')
