@@ -9,39 +9,38 @@ import os
 import config_cdash
 
 
-def get_prefetch(video_request, pre_fetch_scheme='BASIC', bitrates=None, throughput=None):
+def get_prefetch(video_request, pre_fetch_scheme, throughput):
     """
     sample_request = /media/TheSwissAccount/4sec/swiss_88745bps/TheSwissAccount_4s1.m4s
     :param file_path: File request path
     :return: return the request for the next bitrate
     """
-    segment_number, current_bitrate, video_id = get_segment_info(video_request)
+    segment_number, current_bitrate, video_id, available_bitrates = get_segment_info(video_request)
     if 'init' in video_request:
         next_segment = '1'
-        next_bitrate = bitrates[0]
+        next_bitrate = available_bitrates[0]
     elif 'SMART' in pre_fetch_scheme.upper():
         # Check if we need to increase or decrease bitrate
+        config_cdash.LOG.info('Pre-fetch with SMART throughput = {}'.format(throughput))
         if throughput > current_bitrate * config_cdash.BASIC_UPPER_THRESHOLD:
-            # Increase rate only if  download_rate is higher by a certain margin
-            # Check if the bitrate is already at max
-            if current_bitrate == bitrates[-1]:
+            if current_bitrate == available_bitrates[-1]:
                 next_bitrate = current_bitrate
             else:
                 # if the bitrate is not at maximum then select the next higher bitrate
                 try:
-                    current_index = bitrates.index(current_bitrate)
-                    next_bitrate = bitrates[current_index + 1]
+                    current_index = available_bitrates.index(current_bitrate)
+                    next_bitrate = available_bitrates[current_index + 1]
                 except ValueError:
-                    current_index = bitrates[0]
+                    current_index = available_bitrates[0]
         else:
-            # If the download_rate is lower than the current bitrate then pick the most suitable bitrate
-            for index, bitrate in enumerate(bitrates[1:], 1):
+            for index, bitrate in enumerate(available_bitrates[1:], 1):
                 if throughput > bitrate * config_cdash.BASIC_UPPER_THRESHOLD:
                     next_bitrate = bitrate
                 else:
-                    next_bitrate = bitrates[index - 1]
+                    next_bitrate = available_bitrates[index - 1]
                 break
     else:
+        config_cdash.LOG.info('Pre-fetch with BASIC')
         next_bitrate = current_bitrate
     next_segment = str(segment_number + 1)
     next_segment_name = ''.join((config_cdash.VIDEO_CACHE_CONTENT[video_id]['string-match'], next_segment, '.m4s'))
@@ -69,9 +68,11 @@ def get_segment_info(url):
     segment_number = segment_number.replace('.m4s', '')
     segment_number = int(''.join([i for i in segment_number if i.isdigit()]))
 
+    available_bitrates = config_cdash.VIDEO_CACHE_CONTENT[video_id]['available-bitrate']
+
     # parse the bitrate
     bitrate = int("".join([ch for ch in bitrate_string if ch.isdigit()]))
-    return segment_number, bitrate, video_id
+    return segment_number, bitrate, video_id, available_bitrates
 
 
 

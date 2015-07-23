@@ -59,7 +59,7 @@ class CacheManager():
         self.prefetch_thread.join()
         self.current_thread.join()
 
-    def fetch_file(self, file_path):
+    def fetch_file(self, file_path, username=None,session_id=None):
         """ Module to get the file """
         config_cdash.LOG.info('Fetching the file {}'.format(file_path))
         # Add the current request to the current_thread
@@ -67,7 +67,7 @@ class CacheManager():
 
         local_filepath, http_headers = self.cache.get_file(file_path, config_cdash.FETCH_CODE)
         config_cdash.LOG.info('Added {} to current queue'.format(file_path))
-        self.current_queue.put(file_path)
+        self.current_queue.put((file_path, username, session_id))
         self.fetch_requests += 1
         config_cdash.LOG.info('Total fetch Requests = {}'.format(self.fetch_requests))
         return local_filepath, http_headers
@@ -83,7 +83,7 @@ class CacheManager():
         config_cdash.LOG.info('Current Thread: Started thread. Stop value = {}'.format(self.stop.is_set()))
         while not self.stop.is_set():
             try:
-                current_request = self.current_queue.get(timeout=None)
+                current_request, username, session_id = self.current_queue.get(timeout=None)
                 config_cdash.LOG.info('Retrieved the file: {}'.format(current_request))
             except Queue.Empty:
                 config_cdash.LOG.error('Current Thread: Thread GET returned Empty value')
@@ -91,7 +91,8 @@ class CacheManager():
                 continue
             # Determining the next bitrates and adding to the prefetch list
             if current_request:
-                prefetch_request, prefetch_bitrate = get_prefetch(current_request, config_cdash.PREFETCH_SCHEME)
+                throughput = get_throughput_info(username, session_id)
+                prefetch_request, prefetch_bitrate = get_prefetch(current_request, config_cdash.PREFETCH_SCHEME, throughput)
             if not segment_exists(prefetch_request):
                 if check_content_server(prefetch_request):
                     config_cdash.LOG.info('Current Thread: Current segment: {}, Next segment: {}'.format(current_request,
@@ -123,3 +124,9 @@ class CacheManager():
             config_cdash.LOG.info('Pre-fetch request count = {}'.format(self.prefetch_request_count))
         else:
             config_cdash.LOG.warning('Pre-fetch thread terminated')
+
+
+def get_throughput_info(username, session_id):
+    # TODO: Get the throughput from the database
+    # Testing with the lowest value
+    return 1000

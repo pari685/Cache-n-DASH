@@ -131,7 +131,7 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             # Check if it is a valid request
             config_cdash.LOG.info('Request for m4s {}'.format(request))
             if check_content_server(request):
-                local_file_path, http_headers = cache_manager.fetch_file(request)
+                local_file_path, http_headers = cache_manager.fetch_file(request, username, session_id)
                 config_cdash.LOG.debug('M4S request: local {}, http_headers: {}'.format(local_file_path, http_headers))
                 self.send_response(HTTP_OK)
                 for header, header_value in http_headers.items():

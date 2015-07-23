@@ -41,8 +41,8 @@ CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/Big
 VIDEO_FOLDER = 'C:\\Users\\pjuluri\\Desktop\\Videos\\'
 CACHE_LIMIT = 100
 PREFETCH_LIMIT = 100
-PREFETCH_SCHEME = 'BASIC'
-# PREFETCH_SCHEME = 'SMART'
+# PREFETCH_SCHEME = 'BASIC'
+PREFETCH_SCHEME = 'SMART'
 CURRENT_THREAD = True
 PREFETCH_THREAD = True
 
