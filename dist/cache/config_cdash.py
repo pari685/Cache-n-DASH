@@ -46,14 +46,18 @@ PREFETCH_SCHEME = 'SMART'
 CURRENT_THREAD = True
 PREFETCH_THREAD = True
 
-CACHE_DATABASE = 'C:\\Users\\pjuluri\\Desktop\\Cache_db.db'
+#DB
+LIMIT = 5
+SCHEME = 'average'
+#CACHE_DATABASE = 'C:\\Users\\pjuluri\\Desktop\\Cache_db.db'
 TABLE_RETRY_TIME = 5
 
 TABLE_LIST = ["CREATE TABLE Prefetch(Segment Text, Weightage INT)",
               "CREATE TABLE Current(Segment Text)"]
 
 # We store the throughput values in a local database
-THROUGHPUT_DATABASE = "C:\\Users\\pjuluri\\Desktop\\Throughput_db\\throughput_{}.db".format(time.strftime("%Y-%m-%d_%H_%M_%S"))
+#THROUGHPUT_DATABASE = "C:\\Users\\pjuluri\\Desktop\\Throughput_db\\throughput_{}.db".format(time.strftime("%Y-%m-%d_%H_%M_%S"))
+THROUGHPUT_DATABASE = "throughput.db"
 THROUGHPUT_TABLES = ["CREATE TABLE THROUGHPUTDATA("
                      "ENTRYID TIMESTAMP, "
                      "USERNAME Text,"
