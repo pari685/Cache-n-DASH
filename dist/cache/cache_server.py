@@ -41,6 +41,7 @@ import threading
 from prioritycache import CacheManager
 import configure_cdash_log
 from prioritycache.cache_module import check_content_server
+import create_db
 
 # Active state data structures
 MPD_DICT = {}
@@ -151,15 +152,15 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
         # If valid request sent
         entry_id = datetime.datetime.now()
-        # cursor = TH_CONN.cursor()
+        cursor = TH_CONN.cursor()
         throughput = float(request_size)/request_time
         config_cdash.LOG.info('Adding row to Throughput database : '
                               'INSERT INTO THROUGHPUTDATA VALUES ({}, {}, {}, {}, {}, {}, {});'.format(
             entry_id, username, session_id, request_id, request_size, request_time, throughput))
-        # cursor.execute('INSERT INTO THROUGHPUTDATA(ENTRYID, USERNAME, SESSIONID, REQUESTSIZE, REQUESTTIME, THROUGHPUT) '
-        #               'VALUES (?, ?, ?, ?, ?, ?);', (entry_id, username, session_id, request_size, request_time,
-        #                                              throughput))
-        # TH_CONN.commit()
+        cursor.execute('INSERT INTO THROUGHPUTDATA(ENTRYID, USERNAME, SESSIONID, REQUESTSIZE, REQUESTTIME, THROUGHPUT) '
+                       'VALUES (?, ?, ?, ?, ?, ?);', (entry_id, username, session_id, request_size, request_time,
+                                                      throughput))
+        TH_CONN.commit()
 
 
 def parse_mpd(mpd_file, request, mpd_headers, client_id):
@@ -209,7 +210,11 @@ def main():
     config_cdash.LOG = configure_cdash_log.configure_log(config_cdash.LOG_FILENAME, config_cdash.LOG_NAME,
                                                          config_cdash.LOG_LEVEL)
     global MPD_DICT
-    # TH_CONN = create_db(config_cdash.THROUGHPUT_DATABASE, config_cdash.THROUGHPUT_TABLES)
+    global TH_CONN
+    global cursor
+    # I add
+    if TH_CONN == None:
+        TH_CONN = create_db.create_db(config_cdash.THROUGHPUT_DATABASE, config_cdash.THROUGHPUT_TABLES)
     try:
         with open(config_cdash.MPD_DICT_JSON_FILE, 'rb') as infile:
             MPD_DICT = json.load(infile)
