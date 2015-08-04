@@ -142,6 +142,6 @@ def get_throughput_info(username, session_id, limit=config_cdash.LIMIT, scheme=c
         else:
             cursor.execute('SELECT AVG(THROUGHPUT) FROM THROUGHPUTDATA WHERE SESSIONID = ? AND USERNAME = ? ORDER BY ENTRYID DESC LIMIT 5;', (session_id, username))
     else:
-        cursor.execute('SELECT COUNT(*)*SUM(THROUGHPUT) FROM THROUGHPUTDATA WHERE SESSIONID = ? AND USERNAME = ? ORDER BY ENTRYID DESC LIMIT ?;', (session_id, username, limit))
+        cursor.execute('SELECT COUNT(*)*SUM(THROUGHPUT) FROM THROUGHPUTDATA WHERE SESSIONID = ? AND USERNAME = ? ORDER BY ENTRYID DESC LIMIT 'limit';', (session_id, username, limit))
     #return avg_th
     return cursor.fetchall()
