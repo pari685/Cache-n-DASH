@@ -11,7 +11,8 @@ def basic_dash(segment_number, bitrates, average_dwn_time,
     :param segment_number: Current segment number
     :param bitrates: A tuple/list of available bitrates
     :param average_dwn_time: Average download time observed so far
-    :param segment_download_time:  Time taken to download the current segment
+    :param recent_download_sizes:  List of the  size of the segments 
+	:param: previous_segment_times: this is the list of the time taken to download each segment
     :return: next_rate : Bitrate for the next segment
     :return: updated_dwn_time: Updated average download time
     """

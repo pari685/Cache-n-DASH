@@ -30,7 +30,10 @@ class PriorityCache():
     """
     def __init__(self, maxsize):
         self.cache = {}
+        # Creating a queue for the FIFO cache
         self.cache_queue = collections.deque()
+        # Creating a dict for the weighted cache
+        self.cache_dict = collections.defaultdict(int)
         # order that keys have been used
         self.maxsize = maxsize
         self.maxqueue = maxsize * 10
@@ -58,6 +61,10 @@ class PriorityCache():
         """
         try:
             local_filepath, http_headers = self.cache[key]
+            try:
+                self.cache_dict[key] += 1
+            except KeyError:
+                self.cache_dict[key] = 1
             if code == config_cdash.FETCH_CODE:
                 self.fetch_hits += 1
                 config_cdash.LOG.info('Fetch hit count = {} Fetch hit: {}'.format(self.fetch_hits, key))
@@ -95,6 +102,26 @@ class PriorityCache():
             config_cdash.LOG.info('Deleted Key {} from Cache'.format(key))
         except KeyError:
             config_cdash.LOG.error('Key {} not found in Cache'.format(key))
+
+    def pop_dict(self):
+        """
+        Module to remove an element from the dict
+        :param self:
+        :return:
+        """
+        lowest_value = min(self.cache_dict.values())
+        for key in self.cache_dict:
+            if self.cache_dict[key] == lowest_value:
+                try:
+                    del self.cache_dict[key]
+                except KeyError:
+                    config_cdash.LOG.error('Could not find key: {} in cache_dict'.format(key))
+                try:
+                    del self.cache[key]
+                except KeyError:
+                    config_cdash.LOG.error('Could not find key: {} in cache'.format(key))
+                config_cdash.LOG.info('Deleting key {}'.format(key))
+                break
 
     def clear(self):
             self.cache.clear()
