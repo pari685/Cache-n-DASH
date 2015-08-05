@@ -47,7 +47,9 @@ CURRENT_THREAD = True
 PREFETCH_THREAD = True
 
 #DB
+# LIMIT can be 0 or any number
 LIMIT = 5
+# SCHEME can be 'average' or 'HM'
 SCHEME = 'average'
 #CACHE_DATABASE = 'C:\\Users\\pjuluri\\Desktop\\Cache_db.db'
 TABLE_RETRY_TIME = 5
