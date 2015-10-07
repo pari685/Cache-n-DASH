@@ -93,7 +93,7 @@ class CacheManager():
             # Determining the next bitrates and adding to the prefetch list
             if current_request:
                 throughput = get_throughput_info(username, session_id, config_cdash.LIMIT, config_cdash.SCHEME)
-                config_cdash.LOG.info('this is avarage of throughput: = {}'.format(throughput))
+                config_cdash.LOG.info('average of throughput: = {}'.format(throughput))
                 prefetch_request, prefetch_bitrate = get_prefetch(current_request, config_cdash.PREFETCH_SCHEME, throughput)
             if not segment_exists(prefetch_request):
                 if check_content_server(prefetch_request):
@@ -128,18 +128,19 @@ class CacheManager():
             config_cdash.LOG.warning('Pre-fetch thread terminated')
 
 
-def get_throughput_info(username, session_id, limit, scheme):
+def get_throughput_info(username, session_id, limit=None, scheme='average'):
     # TODO: Get the throughput from the database
     # Testing with the lowest value
     TH_CONN = sqlite3.connect(config_cdash.THROUGHPUT_DATABASE)
     cursor = TH_CONN.cursor()
     if scheme == 'average':
-        if limit == 0 :
-            cursor.execute('SELECT AVG(THROUGHPUT) FROM THROUGHPUTDATA WHERE SESSIONID = ? AND USERNAME = ?;', (session_id, username))
+        if not limit:
+            cursor.execute('SELECT AVG(THROUGHPUT) FROM THROUGHPUTDATA WHERE SESSIONID = ? AND USERNAME = ?;', (
+                session_id, username))
         else:
             cursor.execute('SELECT AVG(THROUGHPUT) FROM THROUGHPUTDATA WHERE SESSIONID = ? AND USERNAME = ? ORDER BY ENTRYID DESC LIMIT ?;', (session_id, username, limit))
-    elif scheme == 'HM':
+    elif scheme == 'harmonic_mean':
         cursor.execute('SELECT COUNT(*)/SUM(1/THROUGHPUT) FROM THROUGHPUTDATA WHERE SESSIONID = ? AND USERNAME = ? ORDER BY ENTRYID DESC LIMIT ?;', (session_id, username, limit))
     else:
-        config_cdash.LOG.warning('print "no scheme!')
+        config_cdash.LOG.error('Throughput scheme {} not known'.format(scheme))
     return cursor.fetchall()

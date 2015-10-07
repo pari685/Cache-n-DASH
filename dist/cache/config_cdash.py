@@ -46,20 +46,20 @@ PREFETCH_SCHEME = 'SMART'
 CURRENT_THREAD = True
 PREFETCH_THREAD = True
 
-#DB
-# LIMIT can be 0 or any number
+# Throughput measurement limits
+# The number of previous samples to be considered, If set as None then all samples are considered
 LIMIT = 5
-# SCHEME can be 'average' or 'HM'
+# The throughput average scheme to be considered. Could be 'average' or 'harmonic_mean'
 SCHEME = 'average'
-#CACHE_DATABASE = 'C:\\Users\\pjuluri\\Desktop\\Cache_db.db'
+# CACHE_DATABASE = 'C:\\Users\\pjuluri\\Desktop\\Cache_db.db'
 TABLE_RETRY_TIME = 5
 
-TABLE_LIST = ["CREATE TABLE Prefetch(Segment Text, Weightage INT)",
-              "CREATE TABLE Current(Segment Text)"]
+# TABLE_LIST = ["CREATE TABLE Prefetch(Segment Text, Weightage INT)",
+#              "CREATE TABLE Current(Segment Text)"]
 
 # We store the throughput values in a local database
-#THROUGHPUT_DATABASE = "C:\\Users\\pjuluri\\Desktop\\Throughput_db\\throughput_{}.db".format(time.strftime("%Y-%m-%d_%H_%M_%S"))
-THROUGHPUT_DATABASE = "throughput.db"
+THROUGHPUT_DATABASE = "C:\\Users\\pjuluri\\Desktop\\Throughput_db\\throughput_{}.db".format(time.strftime("%Y-%m-%d_%H_%M_%S"))
+#THROUGHPUT_DATABASE = "throughput.db"
 THROUGHPUT_TABLES = ["CREATE TABLE THROUGHPUTDATA("
                      "ENTRYID TIMESTAMP, "
                      "USERNAME Text,"
