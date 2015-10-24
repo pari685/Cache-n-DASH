@@ -212,14 +212,14 @@ def main():
     global MPD_DICT
     global TH_CONN
     global cursor
-    # I add
+
     if TH_CONN == None:
         TH_CONN = create_db.create_db(config_cdash.THROUGHPUT_DATABASE, config_cdash.THROUGHPUT_TABLES)
     try:
         with open(config_cdash.MPD_DICT_JSON_FILE, 'rb') as infile:
             MPD_DICT = json.load(infile)
     except IOError:
-        config_cdash.LOG.warning('Could not find any MPD_ Json file')
+        config_cdash.LOG.warning('Starting Cache for first time. Could not find any MPD_json file. ')
     # Starting the Cache Manager
     global cache_manager
     config_cdash.LOG.info('Starting the Cache Manager')
