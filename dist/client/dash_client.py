@@ -45,7 +45,6 @@ PLAYBACK = DEFAULT_PLAYBACK
 DOWNLOAD = False
 SEGMENT_LIMIT = None
 
-
 class DashPlayback:
     """
     Audio[bandwidth] : {duration, url_list}
