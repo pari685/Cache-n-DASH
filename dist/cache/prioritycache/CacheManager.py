@@ -34,6 +34,14 @@ import Queue
 import sqlite3
 
 
+class CheckableQueue(Queue.Queue):
+    """ Extending Queue to be able to check for existing values
+    """
+    def __contains__(self, item):
+        with self.mutex:
+            return item in self.queue
+
+
 class CacheManager():
     def __init__(self, cache_size=config_cdash.CACHE_LIMIT):
         """ Initialize the Cache manager. 
@@ -43,8 +51,8 @@ class CacheManager():
         self.prefetch_request_count = 0
         config_cdash.LOG.info('Initializing the Cache Manager')
         self.cache = PriorityCache(cache_size)
-        self.prefetch_queue = Queue.Queue()
-        self.current_queue = Queue.Queue()
+        self.prefetch_queue = CheckableQueue()
+        self.current_queue = CheckableQueue()
         self.stop = threading.Event()
         self.current_thread = threading.Thread(target=self.current_function, args=())
         self.current_thread.daemon = True
@@ -65,7 +73,10 @@ class CacheManager():
         config_cdash.LOG.info('Fetching the file {}'.format(file_path))
         # Add the current request to the current_thread
         # This is to ensure that the pre-fetch process does not hold the
-
+        while file_path in self.prefetch_queue:
+            config_cdash.LOG.warning('Witing untill Prefetch is complete')
+            time.sleep(2)
+            continue
         local_filepath, http_headers = self.cache.get_file(file_path, config_cdash.FETCH_CODE)
         config_cdash.LOG.info('Added {} to current queue'.format(file_path))
         self.current_queue.put((file_path, username, session_id))

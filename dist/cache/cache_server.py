@@ -55,7 +55,6 @@ cache_manager = None
 HTTP_OK = 200
 HTTP_NOT_FOUND = 404
 
-
 class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     """HTTPHandler to serve the video"""
     # check if MPD_DICT file in cache exists

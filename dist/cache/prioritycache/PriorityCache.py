@@ -59,6 +59,7 @@ class PriorityCache():
         """ Get the file from the cache.
         If not get it from the content server
         """
+        config_cdash.LOG.info('Current Cache Dict= {}'.format(self.cache.keys()))
         try:
             local_filepath, http_headers = self.cache[key]
             try:
@@ -75,21 +76,24 @@ class PriorityCache():
             # The file is not in the cache.
             # Need to fetch from content server
             # TODO: Check if the request is valid (Use Rohit's code)
-            local_filepath, http_headers = download_segment(key)
             if key not in self.cache:
+                local_filepath, http_headers = download_segment(key)
                 self.cache[key] = (local_filepath, http_headers)
                 self.cache_queue.append(key)
                 config_cdash.LOG.info('Adding key {} to cache'.format(key))
+                if code == config_cdash.FETCH_CODE:
+                    self.misses += 1
+                    config_cdash.LOG.info('Cache miss: count = {},{}'.format(self.misses, key))
             else:
+                local_filepath, http_headers = self.cache[key]
                 config_cdash.LOG.info('key {} already in Cache'.format(key))
             while True:
                 if len(self.cache) > self.maxsize:
                     self.pop_cache()
                 else:
                     break
-            self.misses += 1
-            config_cdash.LOG.info('Cache miss: count = {},{}'.format(self.misses, key))
-        config_cdash.LOG.info('Current cache: {}'.format(self.cache))
+
+        config_cdash.LOG.info('Current cache: {}'.format(self.cache.keys()))
         return local_filepath, http_headers
 
     def pop_cache(self):
