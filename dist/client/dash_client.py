@@ -207,7 +207,11 @@ def start_playback(dp_object, domain, playback_type=None, download=False):
     segment_number = dp_object.video['start']
     while downloaded_duration < dp_object.playback_duration:
         config_client.LOG.info(" {}: Processing the segment {}".format(playback_type.upper(), segment_number))
-        write_json()
+        try:
+            write_json()
+        except IOError:
+            config_client.LOG.error('Unable to write to JSON {} to file'.format(config_client.JSON_HANDLE))
+
         if not previous_bitrate:
             previous_bitrate = current_bitrate
         if SEGMENT_LIMIT:
