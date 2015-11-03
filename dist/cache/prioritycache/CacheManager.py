@@ -103,9 +103,12 @@ class CacheManager():
                 continue
             # Determining the next bitrates and adding to the prefetch list
             if current_request:
-                throughput = get_throughput_info(username, session_id, config_cdash.LIMIT, config_cdash.SCHEME)
-                config_cdash.LOG.info('average of throughput: = {}'.format(throughput))
-                prefetch_request, prefetch_bitrate = get_prefetch(current_request, config_cdash.PREFETCH_SCHEME, throughput)
+                if config_cdash.PREFETCH_SCHEME == 'SMART':
+                    throughput = get_throughput_info(username, session_id, config_cdash.LIMIT, config_cdash.SCHEME)
+                    config_cdash.LOG.info('average of throughput: = {}'.format(throughput))
+                    prefetch_request, prefetch_bitrate = get_prefetch(current_request, config_cdash.PREFETCH_SCHEME, throughput)
+                else:
+                    prefetch_request, prefetch_bitrate = get_prefetch(current_request, config_cdash.PREFETCH_SCHEME, None)
             if not segment_exists(prefetch_request):
                 config_cdash.LOG.info('Segment not there {}'.format(prefetch_request))
                 if check_content_server(prefetch_request):
