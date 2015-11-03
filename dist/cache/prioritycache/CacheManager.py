@@ -107,6 +107,7 @@ class CacheManager():
                 config_cdash.LOG.info('average of throughput: = {}'.format(throughput))
                 prefetch_request, prefetch_bitrate = get_prefetch(current_request, config_cdash.PREFETCH_SCHEME, throughput)
             if not segment_exists(prefetch_request):
+                config_cdash.LOG.info('Segment not there {}'.format(prefetch_request))
                 if check_content_server(prefetch_request):
                     config_cdash.LOG.info('Current Thread: Current segment: {}, Next segment: {}'.format(current_request,
                                                                                                   prefetch_request))
@@ -114,6 +115,8 @@ class CacheManager():
                     config_cdash.LOG.info('Pre-fetch queue count = {}'.format(self.prefetch_queue.qsize()))
                 else:
                     config_cdash.LOG.info('Current Thread: Invalid Next segment: {}'.format(current_request, prefetch_request))
+            else:
+                config_cdash.LOG.info('Segment already there {}'.format(prefetch_request))
         else:
             config_cdash.LOG.warning('Current Thread: terminated')
 

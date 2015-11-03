@@ -45,6 +45,14 @@ CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/Big
 VIDEO_FOLDER = os.path.join(CWD, 'Videos')
 if not os.path.exists(VIDEO_FOLDER):
     os.makedirs(VIDEO_FOLDER)
+else:
+    print "Clearing the Cache"
+    import glob
+    video_match = os.path.join(VIDEO_FOLDER, "*")
+    video_list = glob.glob(video_match)
+    for video_file in video_list:
+        os.remove(video_file)
+
 CACHE_LIMIT = 100
 PREFETCH_LIMIT = 100
 # PREFETCH_SCHEME = 'BASIC'

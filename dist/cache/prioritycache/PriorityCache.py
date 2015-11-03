@@ -59,7 +59,8 @@ class PriorityCache():
         """ Get the file from the cache.
         If not get it from the content server
         """
-        config_cdash.LOG.info('Current Cache Dict= {}'.format(self.cache.keys()))
+        config_cdash.LOG.info("code = {}".format(code))
+        # config_cdash.LOG.info('Current Cache Dict= {}'.format(self.cache.keys()))
         try:
             local_filepath, http_headers = self.cache[key]
             try:
@@ -92,8 +93,6 @@ class PriorityCache():
                     self.pop_cache()
                 else:
                     break
-
-        config_cdash.LOG.info('Current cache: {}'.format(self.cache.keys()))
         return local_filepath, http_headers
 
     def pop_cache(self):

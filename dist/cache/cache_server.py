@@ -206,12 +206,13 @@ def make_sure_path_exists(path):
 
 def main():
     """ Main program wrapper """
+
     config_cdash.LOG = configure_cdash_log.configure_log(config_cdash.LOG_FILENAME, config_cdash.LOG_NAME,
                                                          config_cdash.LOG_LEVEL)
     global MPD_DICT
     global TH_CONN
     global cursor
-
+    config_cdash.LOG.info('Starting the cache in {} mode'.format(config_cdash.PREFETCH_SCHEME))
     if TH_CONN == None:
         TH_CONN = create_db.create_db(config_cdash.THROUGHPUT_DATABASE, config_cdash.THROUGHPUT_TABLES)
     try:
@@ -233,6 +234,7 @@ def main():
     except KeyboardInterrupt:
         config_cdash.LOG.info('Terminating the Cache Manager')
         cache_manager.terminate()
+        return
 
 if __name__ == "__main__":
     sys.exit(main())
