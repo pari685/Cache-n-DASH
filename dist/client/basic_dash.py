@@ -57,7 +57,7 @@ def basic_dash(segment_number, bitrates, average_dwn_time,
                 next_rate = current_bitrate
                 config_client.LOG.info("Basic Adaptation: Download Rate = {}, next_bitrate = {}".format(
                     download_rate, next_rate))
-                return next_rate
+                return next_rate, updated_dwn_time
         # If the download_rate is lower than the current bitrate then pick the most suitable bitrate
         for index, bitrate in enumerate(bitrates[1:], 1):
             if download_rate > bitrate * config_client.BASIC_UPPER_THRESHOLD:
