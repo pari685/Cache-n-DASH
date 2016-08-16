@@ -317,16 +317,16 @@ def create_arguments(parser):
     parser.add_argument('-m', '--MPD',                   
                         help="Url to the MPD File")
     parser.add_argument('-l', '--LIST', action='store_true',
-                        help="List all the representations")
+                        help="List all the representations without downloading the video file.")
     parser.add_argument('-p', '--PLAYBACK',
                         default=DEFAULT_PLAYBACK,
                         help="Playback type (basic)")
     parser.add_argument('-n', '--SEGMENT_LIMIT',
                         default=SEGMENT_LIMIT,
-                        help="The Segment number limit")
+                        help="The Segment number limit. Limits the number of segments taht are downloaded.")
     parser.add_argument('-d', '--DOWNLOAD', action='store_true',
                         default=False,
-                        help="Keep the video files after playback")
+                        help="Keep the video files after playback. When we set to False all the files are deleted after the video session.")
 
 
 def get_opener():
