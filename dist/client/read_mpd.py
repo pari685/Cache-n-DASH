@@ -88,6 +88,7 @@ class DashPlayback:
                       'start': None,
                       'timescale': None,
                       'initialization': None,
+                      # Video segmnet duration: calcluated as duration/timescale from the MPD file
                       'duration': None,
                       'bandwidth_list': []
                       }
