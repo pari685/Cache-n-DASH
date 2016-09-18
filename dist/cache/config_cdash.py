@@ -55,10 +55,8 @@ else:
     for video_file in video_list:
         os.remove(video_file)
 
-#CACHE_LIMIT = 100
-CACHE_LIMIT = 10
-#PREFETCH_LIMIT = 100
-PREFETCH_LIMIT = 10
+CACHE_LIMIT = 100
+PREFETCH_LIMIT = 100
 PREFETCH_SCHEME = 'BASIC'
 # PREFETCH_SCHEME = 'SMART'
 CURRENT_THREAD = True
