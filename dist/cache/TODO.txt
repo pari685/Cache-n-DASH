@@ -2,3 +2,4 @@
 2. Smarter Cache replacement
 3. Can we eliminate the prefetch database? Check implementations with queue.
 4. Exchange the rate adaptation parameters at the start of the session?
+5. Delete MPD files at start as well
