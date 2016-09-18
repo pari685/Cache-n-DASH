@@ -6,12 +6,17 @@ import glob
 import os
 import config_cdash
 
+def get_segment_local_path(segment_path):
+    """ Module to get the path of the segment on the local harddisk"""
+    segment_filename = segment_path.replace('/', '-')
+    local_filepath = os.path.join(config_cdash.VIDEO_FOLDER, segment_filename)
+    return local_filepath
+
 
 def download_segment(segment_path):
     """ Function to download the segment"""
     segment_url = config_cdash.CONTENT_SERVER + segment_path
-    segment_filename = segment_path.replace('/', '-')
-    local_filepath = os.path.join(config_cdash.VIDEO_FOLDER, segment_filename)
+    local_filepath = get_segment_local_path(segment_path)
     return download_file(segment_url, local_filepath)
 
 
@@ -19,6 +24,23 @@ class Counter(dict):
     """Dictionary where the default value is 0"""
     def __missing__(self, key):
         return 0
+
+
+def remove_file(segment_path):
+    """ Module to delete file from the harddisk"""
+    # TDOD: Configure for MPD files as well
+    if config_cdash.VIDEO_FILE_EXTENTION in segment_path:
+        local_filepath = get_segment_local_path(segment_path)
+        try:
+            os.remove(local_filepath)
+            config_cdash.LOG.info("Deleteing segment {} from harddisk".format(local_filepath))
+        except OSError:
+            config_cdash.LOG.error('Unable to delete video file {} from cache'.format(local_filepath))
+    else:
+        try:
+             os.remove(local_filepath)
+        except OSError:
+            config_cdash.LOG.error('Unable to delete unknown file {} from cache'.format(local_filepath))
 
 
 class PriorityCache():
@@ -102,6 +124,7 @@ class PriorityCache():
         key = self.cache_queue.popleft()
         try:
             del self.cache[key]
+            remove_file(key)
             config_cdash.LOG.info('Deleted Key {} from Cache'.format(key))
         except KeyError:
             config_cdash.LOG.error('Key {} not found in Cache'.format(key))
