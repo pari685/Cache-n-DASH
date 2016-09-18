@@ -31,7 +31,7 @@ from time import strftime
 # CACHE Server Parameters
 HOSTNAME = 'localhost'
 PORT_NUMBER = 8001
-MPD_SOURCE_LIST = ['BigBuckBunny_4s_simple_2014_05_09.mpd']
+MPD_SOURCE_LIST = ['BigBuckBunny_4s_simple_2014_05_09.mpd', 'mpd/BigBuckBunny_4s.mpd']
 CWD = os.getcwd()
 
 MPD_DICT_JSON_FILE = os.path.join(CWD, 'MPD_DICT.json')
@@ -41,8 +41,10 @@ if not os.path.exists(MPD_FOLDER):
 # Parameters for the priority cache
 FETCH_CODE = 'FETCH'
 PREFETCH_CODE = 'PRE-FETCH'
-CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/BigBuckBunny/4sec/'
+#CONTENT_SERVER = 'http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/BigBuckBunny/4sec/'
+CONTENT_SERVER = 'http://127.0.0.1/media/BigBuckBunny/4sec/'
 VIDEO_FOLDER = os.path.join(CWD, 'Videos')
+VIDEO_FILE_EXTENTION = 'm4s'
 if not os.path.exists(VIDEO_FOLDER):
     os.makedirs(VIDEO_FOLDER)
 else:
@@ -53,8 +55,10 @@ else:
     for video_file in video_list:
         os.remove(video_file)
 
-CACHE_LIMIT = 100
-PREFETCH_LIMIT = 100
+#CACHE_LIMIT = 100
+CACHE_LIMIT = 10
+#PREFETCH_LIMIT = 100
+PREFETCH_LIMIT = 10
 PREFETCH_SCHEME = 'BASIC'
 # PREFETCH_SCHEME = 'SMART'
 CURRENT_THREAD = True
