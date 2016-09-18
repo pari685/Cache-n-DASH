@@ -71,6 +71,7 @@ class MyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         global MPD_DICT
         request = self.path.strip("/").split('?')[0]
+        config_cdash.LOG.info("Received request {}".format(request))
         # check if mpd file requested is in Cache Server (dictionary)
         if request in MPD_DICT:
             config_cdash.LOG.info('Found MPD in MPD_DICT')
