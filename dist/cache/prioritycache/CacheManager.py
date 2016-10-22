@@ -145,7 +145,7 @@ class CacheManager():
             config_cdash.LOG.warning('Pre-fetch thread terminated')
 
 
-def get_throughput_info(username, session_id, limit=None, scheme='average'):
+def get_throughput_info(username, session_id, limit=5, scheme='average'):
     # TODO: Get the throughput from the database
     # Testing with the lowest value
     TH_CONN = sqlite3.connect(config_cdash.THROUGHPUT_DATABASE)
@@ -160,4 +160,6 @@ def get_throughput_info(username, session_id, limit=None, scheme='average'):
         cursor.execute('SELECT COUNT(*)/SUM(1/THROUGHPUT) FROM THROUGHPUTDATA WHERE SESSIONID = ? AND USERNAME = ? ORDER BY ENTRYID DESC LIMIT ?;', (session_id, username, limit))
     else:
         config_cdash.LOG.error('Throughput scheme {} not known'.format(scheme))
-    return cursor.fetchall()
+    throughput = cursor.fetchall()
+    throughput = throughput[0][0]
+    return throughput 
