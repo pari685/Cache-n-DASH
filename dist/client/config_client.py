@@ -83,10 +83,10 @@ JSON_HANDLE['playback_info'] = {'start_time': None,
 # TODO: Set these paramters at the start. (MPD or cookies??)
 BASIC_THRESHOLD = 10
 BASIC_LOWER_THRESHOLD = 0.8
-BASIC_UPPER_THRESHOLD = 1.1
+BASIC_UPPER_THRESHOLD = 1.2
 RE_BUFFERING_COUNT = 0.8
 
 # Number of segments for moving average
-BASIC_DELTA_COUNT = 5
-MAX_BUFFER_SIZE = 5
+BASIC_DELTA_COUNT = 10
+MAX_BUFFER_SIZE = 60
 INITIAL_BUFFERING_COUNT = 2
