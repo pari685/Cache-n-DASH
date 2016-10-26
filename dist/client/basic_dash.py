@@ -50,6 +50,8 @@ def basic_dash(segment_number, bitrates, average_dwn_time,
                 config_client.LOG.info('Increasing bitrate')
             except ValueError:
                 current_index = bitrates[0]
+    elif download_rate > current_bitrate:
+        next_bitrate = current_bitrate
     else:
         # Avoiding being too aggressive in downshift
         if current_bitrate == bitrates[-1]:
