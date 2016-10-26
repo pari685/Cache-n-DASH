@@ -62,6 +62,9 @@ def basic_dash(segment_number, bitrates, average_dwn_time,
                 return next_rate, updated_dwn_time
         # If the download_rate is lower than the current bitrate then pick the most suitable bitrate
         for index, bitrate in enumerate(bitrates[1:], 1):
+            if bitrate >= current_bitrate:
+                # do not use current bitrate to avoid oscillations
+                break
             if download_rate > bitrate * config_client.BASIC_UPPER_THRESHOLD:
                 next_rate = bitrate
             else:
